@@ -80,7 +80,7 @@ fi
 
 # 3. The module and its temporary files
 rm -rf "$MODULES/Sentinel"
-rm -f "$RUN/sentinel-engine.pid" "$RUN/sentinel-engine.log" "$STATE"
+rm -f "$RUN/sentinel-engine.pid" "$RUN/sentinel-engine.log" "$RUN/sentinel-summary.json" "$STATE"
 say "Module removed"
 
 # 4. Data

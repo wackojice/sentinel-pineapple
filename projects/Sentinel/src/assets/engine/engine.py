@@ -49,6 +49,7 @@ FLUSH_INTERVAL = 5.0
 RETENTION_INTERVAL = 600.0
 BAD_CHANNEL_FAILURES = 3     # failures in a row before a channel is skipped
 USE_NL80211 = True           # channel changes without starting `iw` (falls back to it)
+SUMMARY_INTERVAL = 60.0      # seconds between two dashboard summaries (summary.py)
 NICENESS = 10                # live capture runs below the web interface
 BAD_CHANNEL_RETRY = 300.0    # seconds before skipped channels are tried again
 STUCK_MESSAGE = ('%s cannot change channel: the radio refuses every channel. Another '
@@ -215,7 +216,7 @@ def read_local_macs(sysfs='/sys/class/net'):
 class Engine(object):
 
     def __init__(self, db_path, radios=None, track_clients=False, track_probes=False,
-                 local_bssids=None, wids=True, my_networks_path=None):
+                 local_bssids=None, wids=True, my_networks_path=None, summary_path=None):
         self.db_path = db_path
         # The Pineapple's own access points (and every other local interface): never a
         # neighbour, never an intruder
@@ -241,6 +242,10 @@ class Engine(object):
         self.db_errors = 0             # flushes lost to a database error (full, locked...)
         self._errors_logged = {}       # error type -> count, to log each kind only a few times
         self.last_ts = None            # time of the last frame: the detector's clock (pcap replay too)
+        self.last_status = {}
+        self.my_networks_path = (my_networks_path
+                                 or os.path.join(os.path.dirname(db_path) or '.', 'my_networks.json'))
+        self.summary_path = summary_path  # None: no summary file (pcap replay, tests)
 
         # Intrusion detection: reads each 5 s window before it is written
         self.detector = None
@@ -248,8 +253,7 @@ class Engine(object):
             try:
                 import detect
                 self.detector = detect.Detector(
-                    self.conn, my_networks_path or os.path.join(os.path.dirname(db_path) or '.', 'my_networks.json'),
-                    self.local_bssids, track_clients)
+                    self.conn, self.my_networks_path, self.local_bssids, track_clients)
             except Exception as e:  # detection must never prevent listening
                 self._log_once('detector', 'intrusion detection disabled: %s' % e)
 
@@ -360,8 +364,21 @@ class Engine(object):
         }
         if extra:
             status.update(extra)
+        self.last_status = status
         with self.conn:
             store.set_meta(self.conn, {'engine': status})
+
+    def write_summary(self):
+        """The dashboard summary (summary.py). Never raises: it must not stop listening."""
+        if not self.summary_path:
+            return False
+        try:
+            import summary
+            return summary.write(self.summary_path,
+                                 summary.build(self.conn, self.last_status, self.my_networks_path))
+        except Exception as e:
+            self._log_once('summary', 'summary not written: %s' % e)
+            return False
 
     # -- live capture -----------------------------------------------------
 
@@ -388,6 +405,7 @@ class Engine(object):
         self.write_status()
         last_flush = time.time()
         last_retention = 0.0
+        last_summary = 0.0
         try:
             while self.running:
                 try:
@@ -421,6 +439,9 @@ class Engine(object):
                     if now - last_retention >= RETENTION_INTERVAL:
                         last_retention = now
                         store.apply_retention(self.conn)
+                    if now - last_summary >= SUMMARY_INTERVAL:
+                        last_summary = now
+                        self.write_summary()
                 except sqlite3.Error as e:
                     # Database full, locked or damaged: drop this batch and keep listening
                     # rather than stop the probe; the next cycle tries again.
@@ -435,6 +456,7 @@ class Engine(object):
             self.flush_window()
             self.running = False
             self.write_status()
+            self.write_summary()  # says the engine stopped
 
     # -- offline replay ---------------------------------------------------
 
@@ -549,6 +571,8 @@ def main():
     p.add_argument('--settings', help='settings.json written by the module')
     p.add_argument('--no-hop', action='store_true')
     p.add_argument('--pidfile')
+    p.add_argument('--summary', default='/tmp/sentinel-summary.json',
+                   help='dashboard summary written every minute while listening live')
     args = p.parse_args()
 
     settings = load_settings(args.settings) if args.settings else {}
@@ -559,7 +583,8 @@ def main():
     engine = Engine(args.db, radios=radios, track_clients=settings.get('track_clients', False),
                     track_probes=settings.get('track_probes', False),
                     wids=settings.get('wids_enabled', True) is not False,
-                    my_networks_path=os.path.join(os.path.dirname(os.path.abspath(args.db)), 'my_networks.json'))
+                    my_networks_path=os.path.join(os.path.dirname(os.path.abspath(args.db)), 'my_networks.json'),
+                    summary_path=None if args.pcap else args.summary)
 
     if args.pcap:
         n = engine.run_pcap(args.pcap)

@@ -2,18 +2,10 @@
 
 Ideas and plans that are not built yet. Nothing here is a promise.
 
-## Summary export for dashboards
-- **Goal:** let a home dashboard or a monitoring tool show Sentinel's state without opening the Pineapple's
-  web interface.
-- **How:** once a minute, the engine writes `/tmp/sentinel-summary.json` (about 1 KB) from what it already
-  holds in memory:
-  - the listening state and the radios;
-  - the score and worst level of your networks, and which marked access points are not seen;
-  - unread alerts by severity, and the last five alerts;
-  - deauthentication frames in the last hour.
-- No Python process is started per read: on the Mark VII that costs about 3 s of CPU each time.
-- **Read access:** a dedicated SSH key restricted with `command="cat /tmp/sentinel-summary.json"`, so that the
-  reader can do nothing else. It is pulled by the dashboard host, never pushed by the Pineapple.
+## Summary export for dashboards (done in 0.7.5)
+The engine now writes `/tmp/sentinel-summary.json` once a minute (see `docs/DEVELOPMENT.md`). What is left is on
+the dashboard side: an SSH key restricted with `command="cat /tmp/sentinel-summary.json"`, pulled by the dashboard
+host and never pushed by the Pineapple.
 
 ## Explanations by a local LLM (optional, outside the Pineapple)
 A language model running on another machine can read the same summary and:

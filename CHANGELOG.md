@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.5
+- **A summary for dashboards.** While listening, the engine writes `/tmp/sentinel-summary.json` once a minute (about
+  1 KB, readable by root only): listening state and radios, your networks (score, worst level, the ones not seen in
+  the last hour), unread alerts by severity and the last five, deauthentication frames in the last hour, and the
+  time on the Pineapple's clock. A home dashboard can read it with a restricted SSH key instead of starting Python
+  on the Pineapple at every poll. `uninstall.sh` removes it.
+- Tests: 3 more for the summary (22 in `tools/test_detect.py`).
+
 ## 0.7.4
 - **Without a 5 GHz adapter**, the Overview's 5 GHz panel says so ("No radio here receives 5 GHz. Plug in an
   adapter such as the MK7AC…") instead of showing an empty spectrum, or tells you to turn on Radio 2 when a 5 GHz

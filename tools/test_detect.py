@@ -101,7 +101,8 @@ class Capture(object):
                 fh.write(fr)
 
 
-class DetectTest(unittest.TestCase):
+class DetectBase(unittest.TestCase):
+    """Helpers shared by the test classes below (no test here)."""
 
     def setUp(self):
         self.dir = tempfile.mkdtemp()
@@ -152,7 +153,9 @@ class DetectTest(unittest.TestCase):
     def kinds(self, events):
         return [(e['kind'], e['severity']) for e in events]
 
-    # -- the tests --------------------------------------------------------
+
+class DetectTest(DetectBase):
+
 
     def test_no_events_on_quiet_capture(self):
         self.mark()
@@ -361,6 +364,50 @@ class DetectTest(unittest.TestCase):
             subprocess.run([sys.executable, script, '--pcap', pcap, '--db', self.db, '--settings', settings],
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             self.assertEqual(len(self.events()), expected, 'wids_enabled=%s' % enabled)
+
+class SummaryTest(DetectBase):
+    """Roadmap: the small file a dashboard reads every minute."""
+
+    def test_summary_after_an_imitation(self):
+        import stat
+        import summary
+        self.mark()
+        cap = Capture()
+        self.home(cap)
+        cap.every(T0 + 10, T0 + 13, 0.5, lambda t: beacon(TWIN, 'Home', 11, 'open'))
+        self.run_capture(cap)
+        e = engine.Engine(self.db, my_networks_path=self.mine_path,
+                          summary_path=os.path.join(self.dir, 'summary.json'))
+        e.write_status()
+        self.assertTrue(e.write_summary())
+        path = os.path.join(self.dir, 'summary.json')
+        self.assertEqual(stat.S_IMODE(os.stat(path).st_mode), 0o600)
+        self.assertLess(os.path.getsize(path), 4096)
+        with open(path) as fh:
+            data = json.load(fh)
+        self.assertEqual(data['format'], 1)
+        self.assertEqual(data['alerts']['unread_total'], 1)
+        self.assertEqual(data['alerts']['unread']['critical'], 1)
+        self.assertIn('your network name "Home"', data['alerts']['recent'][0]['title'])
+        self.assertEqual(data['my_networks']['marked'], 1)
+        self.assertAlmostEqual(data['generated_at'], __import__('time').time(), delta=60)
+        # Seen within the hour, then missing a day later (the capture's own clock)
+        soon = summary.build(e.conn, e.last_status, self.mine_path, now=T0 + 600)
+        self.assertEqual((soon['my_networks']['seen_last_hour'], soon['my_networks']['not_seen']), (1, []))
+        later = summary.build(e.conn, e.last_status, self.mine_path, now=T0 + 86400)
+        self.assertEqual(later['my_networks']['not_seen'], [{'bssid': HOME, 'ssid': 'Home'}])
+        e.conn.close()
+
+    def test_summary_write_never_raises(self):
+        import summary
+        self.assertFalse(summary.write('/nonexistent-folder/summary.json', {'x': 1}))
+        self.assertFalse(summary.write(os.path.join(self.dir, 's.json'), {'x': object()}))
+
+    def test_replay_writes_no_summary(self):
+        cap = Capture()
+        cap.every(T0, T0 + 10, 0.5, lambda t: beacon(OTHER, 'Neighbour', 6, 'wpa2'))
+        self.run_capture(cap)
+        self.assertFalse(any(n.startswith('summary') for n in os.listdir(self.dir)))
 
 if __name__ == '__main__':
     unittest.main(verbosity=1)

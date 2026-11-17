@@ -70,6 +70,11 @@ Web UI (Angular)  ⇄  module.py (Hak5 backend)  ⇄  SQLite  ⇐  engine.py (ca
 - **`assets/engine/store.py`**: SQLite schema, in-memory aggregation and the `events` table, the alert bus shared by every tab.
 - **`assets/engine/analysis.py`**: read-side computations: channel report, security audit (with a separate score for your networks), spectrum and overview.
 - **`assets/engine/nl80211.py`**: changes a monitor interface's channel through nl80211 directly (the message `iw dev … set channel` sends), so no process is started at each hop; the hopper falls back to `iw` if the device does not take it. Its `send` calls go to the local kernel over a netlink socket; nothing is transmitted over the air, and the capture socket is only read. Passivity check: `grep -rn "send" projects/Sentinel/src/` must only show those two lines.
+- **`assets/engine/summary.py`**: once a minute while listening, and once when it stops, the engine writes
+  `/tmp/sentinel-summary.json` (about 1 KB, root only): listening state and radios, your networks (marked, seen in the
+  last hour, score, worst level, the ones not seen), unread alerts by severity and the last five, deauthentication
+  frames in the last hour, and `generated_at` on the Pineapple's clock. A dashboard reads that file instead of
+  starting Python on the Pineapple at every poll.
 - **`assets/engine/mynets.py`**: your networks, in `my_networks.json` (64 at most): one reference per BSSID, frozen when it is marked, and suggestions of other access points of the same network.
 - **`assets/engine/detect.py`**: passive intrusion detection. Every 5 s the engine hands it the window it aggregated in memory, before writing it; the detector reads it, keeps a bounded state (5,000 known BSSIDs, 256 followed, 1,024 cooldowns) and writes its events (`source = 'wids'`) in one transaction. A replayed pcap is cut into windows on the capture's own clock, so it gives the same alerts as the live run.
 - **`module.py`**: starts and stops the engine, manages settings, detects the bands each radio supports (`iw phy`) and serves data to the UI.
