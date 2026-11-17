@@ -14,6 +14,24 @@ louche apparaît, comme quelqu'un qui copie le nom de mon réseau ou qui déconn
 Sentinel ne fait qu'écouter. Il n'envoie rien et n'attaque rien. Par défaut, il ne garde aucune info sur les
 appareils des autres non plus.
 
+## Ce qu'il te signale
+
+| Alerte | Ce qui s'est passé |
+|---|---|
+| Imitation de ton réseau | Une autre borne utilise le nom de ton réseau. Critique si sa sécurité est plus faible que la tienne. |
+| Deux appareils, une adresse | L'adresse de ta borne apparaît avec deux réglages différents en même temps. |
+| Sécurité plus faible | Ta borne annonce soudain une sécurité plus faible, ou n'exige plus le PMF. |
+| Borne modifiée | Son empreinte a changé. Souvent une mise à jour ; tu peux accepter le nouvel état en un clic. |
+| Changement de canal | Ta borne est passée sur un canal qu'elle n'utilise pas d'habitude. |
+| Rafale de désauthentifications | 10 trames en 5 secondes, ou 30 en une minute, sur la même borne. |
+| Faux points d'accès | Des dizaines de bornes jamais vues, toutes en même temps. |
+| Répond à tous les noms | Une borne annonce 5 noms différents en une minute. |
+
+![Onglet Detection](docs/screenshots/5-detection.png)
+
+À garder en tête : les radios sautent d'un canal à l'autre, donc chaque canal n'est écouté qu'une partie du temps.
+Une attaque très courte peut passer. Sentinel te dit ce qu'il voit, il ne bloque rien.
+
 ## Ce qu'il te faut
 
 - Un WiFi Pineapple Mark VII (testé avec le firmware 2.1.3)
@@ -47,24 +65,6 @@ propres réseaux, et la détection sait quoi surveiller.
 ![Onglet Security](docs/screenshots/3-security.png)
 
 Après ça, laisse-le tourner. Les alertes s'affichent dans **Detection**, avec un compteur sur l'onglet.
-
-![Onglet Detection](docs/screenshots/5-detection.png)
-
-## Ce qu'il te signale
-
-| Alerte | Ce qui s'est passé |
-|---|---|
-| Imitation de ton réseau | Une autre borne utilise le nom de ton réseau. Critique si sa sécurité est plus faible que la tienne. |
-| Deux appareils, une adresse | L'adresse de ta borne apparaît avec deux réglages différents en même temps. |
-| Sécurité plus faible | Ta borne annonce soudain une sécurité plus faible, ou n'exige plus le PMF. |
-| Borne modifiée | Son empreinte a changé. Souvent une mise à jour ; tu peux accepter le nouvel état en un clic. |
-| Changement de canal | Ta borne est passée sur un canal qu'elle n'utilise pas d'habitude. |
-| Rafale de désauthentifications | 10 trames en 5 secondes, ou 30 en une minute, sur la même borne. |
-| Faux points d'accès | Des dizaines de bornes jamais vues, toutes en même temps. |
-| Répond à tous les noms | Une borne annonce 5 noms différents en une minute. |
-
-À garder en tête : les radios sautent d'un canal à l'autre, donc chaque canal n'est écouté qu'une partie du temps.
-Une attaque très courte peut passer. Sentinel te dit ce qu'il voit, il ne bloque rien.
 
 ## Bon à savoir
 

@@ -14,6 +14,24 @@ network's name or kicking devices off.
 Sentinel only listens. It never sends anything and never attacks anything. By default it doesn't keep any info
 about other people's devices either.
 
+## What it warns you about
+
+| Alert | What happened |
+|---|---|
+| Imitation of your network | Another access point uses your network's name. Critical if its security is weaker than yours. |
+| Two devices, one address | Your access point's address shows up with two different settings at the same time. |
+| Weaker security | Your access point suddenly announces weaker security, or drops required PMF. |
+| Access point changed | Its fingerprint changed. Usually a firmware update; you can accept the new state in one click. |
+| Channel change | Your access point moved to a channel it doesn't normally use. |
+| Deauthentication burst | 10 deauth frames in 5 seconds, or 30 in a minute, on the same access point. |
+| Forged access points | Dozens of access points nobody has seen before, all at once. |
+| Answers for any network | One access point announces 5 different names within a minute. |
+
+![Detection tab](docs/screenshots/5-detection.png)
+
+One thing to keep in mind: the radios hop from channel to channel, so each channel is only listened to part of the
+time. A very short attack can slip through. Sentinel tells you what it sees, it doesn't block anything.
+
 ## What you need
 
 - A WiFi Pineapple Mark VII (tested on firmware 2.1.3)
@@ -61,29 +79,11 @@ and the detection knows what to watch.
 
 After that, leave it running. Alerts show up in **Detection**, with a counter on the tab.
 
-![Detection tab](docs/screenshots/5-detection.png)
-
 <details>
 <summary>Channels tab</summary>
 
 ![Channels tab](docs/screenshots/2-channels.png)
 </details>
-
-## What it warns you about
-
-| Alert | What happened |
-|---|---|
-| Imitation of your network | Another access point uses your network's name. Critical if its security is weaker than yours. |
-| Two devices, one address | Your access point's address shows up with two different settings at the same time. |
-| Weaker security | Your access point suddenly announces weaker security, or drops required PMF. |
-| Access point changed | Its fingerprint changed. Usually a firmware update; you can accept the new state in one click. |
-| Channel change | Your access point moved to a channel it doesn't normally use. |
-| Deauthentication burst | 10 deauth frames in 5 seconds, or 30 in a minute, on the same access point. |
-| Forged access points | Dozens of access points nobody has seen before, all at once. |
-| Answers for any network | One access point announces 5 different names within a minute. |
-
-One thing to keep in mind: the radios hop from channel to channel, so each channel is only listened to part of the
-time. A very short attack can slip through. Sentinel tells you what it sees, it doesn't block anything.
 
 ## Good to know
 
