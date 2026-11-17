@@ -87,5 +87,7 @@ sh /pineapple/modules/Sentinel/uninstall.sh            # garde tes données et p
 sh /pineapple/modules/Sentinel/uninstall.sh --purge    # efface aussi /root/.Sentinel
 ```
 
+Tu l'as essayé ? Un bogue ou une fausse alerte ? Ouvre une issue, ça m'intéresse.
+
 Licence MIT. Fait par Not_Hackerman, avec l'aide de Claude et Fable. Les captures viennent de la démo, les noms de
-réseaux qu'on y voit sont inventés.
+réseaux qu'on y voit sont inventés. Sans lien avec Hak5. Le WiFi Pineapple est un produit de Hak5.

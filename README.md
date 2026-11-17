@@ -123,5 +123,7 @@ sh /pineapple/modules/Sentinel/uninstall.sh --purge    # also deletes /root/.Sen
 - [CHANGELOG.md](CHANGELOG.md) · [SECURITY.md](SECURITY.md) (reporting a vulnerability) ·
   [THIRD-PARTY.md](THIRD-PARTY.md)
 
+Tried it? Found a bug or a false alert? Open an issue, I'd like to hear about it.
+
 MIT licence. Made by Not_Hackerman, with help from Claude and Fable. The screenshots come from the demo, the network
-names in them are made up.
+names in them are made up. Not affiliated with Hak5. WiFi Pineapple is a Hak5 product.
