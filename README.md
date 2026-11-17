@@ -1,117 +1,103 @@
 # Sentinel
 
-**Give your idle WiFi Pineapple a second life: a quiet guard that checks your Wi-Fi posture.**
+A module for the WiFi Pineapple Mark VII that watches your own Wi-Fi instead of attacking someone else's.
 
 [Version française](README.fr.md)
 
-![Sentinel's overview: live spectrum, your networks, alerts](docs/screenshots/1-overview.png)
+![Overview tab](docs/screenshots/1-overview.png)
 
-## Why Sentinel?
+I had a Pineapple sitting in a drawer. Once your tests are done, there isn't much left to do with it, and I figured a
+lot of people are in the same spot. So I turned mine into something useful at home: it listens to the Wi-Fi around
+the house, tells me how secure my networks are, and warns me if something weird shows up, like someone copying my
+network's name or kicking devices off.
 
-Many WiFi Pineapples spend their days in a drawer. The pentest is over, the training is done, or someone tried it once
-and never needed it again. It is still an excellent Wi-Fi radio.
-
-Sentinel turns that Pineapple into a **passive watchdog for your own Wi-Fi**. Plug it in, open the module, and it tells
-you:
-
-- **how secure your networks are**, with plain-language explanations (WPA3, PMF, open networks, WPS…);
-- **who else is on the air around you**, and which channel is the quietest;
-- **when something looks like an attack**: someone copying your network's name, a burst of frames kicking devices off,
-  a flood of fake access points.
-
-Sentinel **only listens**. It never sends a frame, never attacks anything, and by default records nothing about
-other people's devices.
+Sentinel only listens. It never sends anything and never attacks anything. By default it doesn't keep any info
+about other people's devices either.
 
 ## What you need
 
-- A **WiFi Pineapple Mark VII** (firmware 2.1.3).
-- Optional, but recommended: the **MK7AC adapter**, to watch the 5 GHz band (DFS channels included) as well as 2.4 GHz.
-- A computer connected to the Pineapple (USB or its management Wi-Fi). **The Pineapple never needs Internet.**
+- A WiFi Pineapple Mark VII (tested on firmware 2.1.3)
+- The MK7AC adapter if you also want 5 GHz (DFS channels included). Without it you get 2.4 GHz only.
+- A computer plugged into the Pineapple. The Pineapple doesn't need Internet.
 
-## Install in two minutes
+## Install
 
-1. Download every file of the [latest release](../../releases/latest) into one folder: `Sentinel-<version>.tar.gz`,
-   `python3-sqlite3_…_mipsel_24kc.ipk`, `install.sh`, `uninstall.sh`, `install-from-pc.sh` and `SHA256SUMS`.
-2. From that folder, on your computer:
-   ```sh
-   sha256sum -c SHA256SUMS          # macOS: shasum -a 256 -c SHA256SUMS
-   sh install-from-pc.sh --reboot   # asks for the Pineapple's root password
-   ```
-3. When the Pineapple is back (about two minutes), reload its web interface with **Ctrl+Shift+R** and open **Sentinel**.
+Grab all the files from the [latest release](../../releases/latest) and put them in one folder. Then, from that
+folder on your computer:
 
-The script checks every file, installs the module and its only dependency (`python3-sqlite3`, the exact package
-tested on a Mark VII), and keeps your settings and data on upgrades.
+```sh
+sha256sum -c SHA256SUMS          # on a Mac: shasum -a 256 -c SHA256SUMS
+sh install-from-pc.sh --reboot   # it will ask for the Pineapple's root password
+```
+
+The script copies everything to the Pineapple, installs the module and `python3-sqlite3` (the only thing missing
+on the stock firmware), then reboots it. Once it's back, reload the Pineapple's page with Ctrl+Shift+R and open
+Sentinel.
 
 <details>
-<summary>Other ways to install</summary>
+<summary>Other ways to install, and upgrading</summary>
 
-- **On the Pineapple itself:** copy the same files to a folder on the Pineapple and run `sh install.sh --reboot` there.
-- **By hand:** extract the module into `/pineapple/modules/`, then install the dependency from the notice at the top
-  of the module (this needs Internet on the Pineapple), or with `opkg install ./python3-sqlite3_…_mipsel_24kc.ipk`.
-  Install **only** that package: the feed's other packages are newer than the firmware's.
-- **Upgrading:** use the same commands. A reboot is needed after an upgrade, since the old module backend stays in
-  memory until then.
+- On the Pineapple directly: copy the same files over and run `sh install.sh --reboot` there.
+- By hand: extract the module into `/pineapple/modules/`, then install `python3-sqlite3` with
+  `opkg install ./python3-sqlite3_…_mipsel_24kc.ipk`, or with the button at the top of the module if your Pineapple
+  has Internet. Don't install the other packages from the feed, they're newer than what the firmware ships.
+- To upgrade, run the same commands. You need the reboot, otherwise the old version keeps running in the background.
+  Your settings and data stay.
 </details>
 
-## First start
+## Getting started
 
-1. **Settings:** Radio 1 is `wlan1mon` (2.4 GHz). Turn on Radio 2, pick the MK7AC (`wlan3`) and **5 GHz, all channels**.
-   Save, then press **Start monitoring**.
+In **Settings**, Radio 1 is `wlan1mon` (2.4 GHz). Turn on Radio 2, pick `wlan3` (the MK7AC) and click
+"5 GHz, all channels". Save, then hit Start monitoring.
 
-   ![Settings: two radios, privacy switches off by default](docs/screenshots/4-settings.png)
+![Settings tab](docs/screenshots/4-settings.png)
 
-2. **Mark your own networks.** In **Security**, type your network's name in the search box, then click the star at the
-   top of the list: every access point of that network becomes yours. Sentinel also suggests the other networks of the
-   same access point. You now get a score for **your** networks, and Sentinel knows what to protect.
+Then go to **Security** and tell it which networks are yours. Type your network's name in the search box and click
+the star at the top of the list. All the access points with that name get marked. If you have several access
+points, it will also suggest the other networks they broadcast. From then on you get a score for your own networks,
+and the detection knows what to watch.
 
-   ![Security: your networks first, a star on each row, one at the top](docs/screenshots/3-security.png)
+![Security tab](docs/screenshots/3-security.png)
 
-3. **Let it listen.** Alerts appear in **Detection**, with a badge on the tab.
+After that, leave it running. Alerts show up in **Detection**, with a counter on the tab.
 
-## What you will see
-
-| Tab | What it shows |
-|---|---|
-| **Overview** | Both bands as a live spectrum, coloured by security; your networks' score; the latest alerts. |
-| **Channels** | Who uses which channel, and the quietest one for your own access point. |
-| **Security** | Every network nearby, graded from Critical to Good, with the reason in plain words. |
-| **Detection** | Alerts from the passive intrusion detection, by severity. |
-
-![Detection: an imitation of your network, deauthentication bursts](docs/screenshots/5-detection.png)
+![Detection tab](docs/screenshots/5-detection.png)
 
 <details>
 <summary>Channels tab</summary>
 
-![Channels: spectrum of one band, the quietest channel, usage per channel](docs/screenshots/2-channels.png)
+![Channels tab](docs/screenshots/2-channels.png)
 </details>
 
-## What it detects
+## What it warns you about
 
-| Alert | When |
+| Alert | What happened |
 |---|---|
-| Imitation of your network | another access point announces your network's name (critical if its security is weaker) |
-| Two devices, one address | your access point's address announces two securities or two fingerprints at once |
-| Weaker security | your access point is suddenly announced with a weaker security, or without required PMF |
-| Access point changed | your access point's fingerprint changed (often a router update: accept it in one click) |
-| Channel change | your access point stays on another channel |
-| Deauthentication burst | 10 deauthentication frames in 5 s, or 30 in a minute, on one access point |
-| Forged access points | dozens of never-seen access points at once (they are kept out of the database) |
-| Answers for any network | one access point announces 5 different names in a minute |
+| Imitation of your network | Another access point uses your network's name. Critical if its security is weaker than yours. |
+| Two devices, one address | Your access point's address shows up with two different settings at the same time. |
+| Weaker security | Your access point suddenly announces weaker security, or drops required PMF. |
+| Access point changed | Its fingerprint changed. Usually a firmware update; you can accept the new state in one click. |
+| Channel change | Your access point moved to a channel it doesn't normally use. |
+| Deauthentication burst | 10 deauth frames in 5 seconds, or 30 in a minute, on the same access point. |
+| Forged access points | Dozens of access points nobody has seen before, all at once. |
+| Answers for any network | One access point announces 5 different names within a minute. |
 
-**Honest limits:** with two radios hopping across channels, each channel is heard only part of the time, so a very
-short attack can be missed. Sentinel warns you; it never blocks or answers anything.
+One thing to keep in mind: the radios hop from channel to channel, so each channel is only listened to part of the
+time. A very short attack can slip through. Sentinel tells you what it sees, it doesn't block anything.
 
 ## Good to know
 
-- **Private by default:** no device address (MAC) and no searched network name is recorded unless you turn tracking on.
-  Deauthentication frames are counted per access point only.
-- **Light on the Pineapple:** about 40 % of its single core with both radios, about 12 MB of memory, and the database is
-  capped at 64 MB.
-- While it listens, Sentinel switches off the idle `wlan3` so the 5 GHz radio can change channel. "Stop monitoring",
-  a reboot or `uninstall.sh` give it back.
-- Don't run Recon on the same radio at the same time. To use the Pineapple for something else, just stop monitoring.
-- Channels 120–128 are refused in Canada (weather radar): that is normal.
-- The Pineapple has no battery-backed clock. Times are shown on its own clock, and a note says when it drifts.
+- Device addresses and the names of networks people's phones are looking for are not saved unless you turn that on
+  in Settings.
+- It uses about 40% of the Pineapple's CPU with both radios, around 12 MB of RAM, and the database never goes over
+  64 MB.
+- While it's running, Sentinel turns off `wlan3` (the MK7AC in normal mode) so the 5 GHz radio can change channel.
+  Stopping, rebooting or uninstalling brings it back.
+- Don't run Recon on the same radio at the same time. If you need the Pineapple for something else, just stop
+  monitoring.
+- In Canada, channels 120 to 128 are blocked for weather radar. The module skips them, that's normal.
+- The Pineapple has no battery for its clock, so its time drifts after a reboot. Sentinel shows times based on the
+  Pineapple's own clock so "5 min ago" stays right.
 
 ## Uninstall
 
@@ -121,22 +107,21 @@ sh /pineapple/modules/Sentinel/uninstall.sh --purge    # also deletes /root/.Sen
 ```
 
 <details>
-<summary>What Sentinel stores, and where</summary>
+<summary>What gets stored, and where</summary>
 
-- `/root/.Sentinel/sentinel.db`: access points (30 days), channel and deauthentication statistics per access point
-  (48 hours), alerts (5,000 at most). Device addresses and searched names only if you turn tracking on.
-- `/root/.Sentinel/settings.json` and `my_networks.json`: your settings and your marked networks.
-- `/tmp/sentinel-*`: the engine's log, PID and radio state, gone at each reboot.
+- `/root/.Sentinel/sentinel.db`: access points (30 days), channel and deauth stats (48 hours), alerts (5,000 max)
+- `/root/.Sentinel/settings.json` and `my_networks.json`: your settings and the networks you marked
+- `/tmp/sentinel-*`: log and temporary files, gone after a reboot
 </details>
 
 ## More
 
-- Test reports on a real Mark VII: [`0.4.3`](docs/test-report-0.4.3.md), [`0.4.4`](docs/test-report-0.4.4.md),
-  [`0.6`](docs/test-report-0.6.md), [`0.7`](docs/test-report-0.7.md)
-- How it works, tests, building, demo: [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md)
-- What may come next: [`docs/ROADMAP.md`](docs/ROADMAP.md)
-- Changes: [`CHANGELOG.md`](CHANGELOG.md) · Security issues: [`SECURITY.md`](SECURITY.md) ·
-  Third-party components: [`THIRD-PARTY.md`](THIRD-PARTY.md)
-- Licence: MIT, by Not_Hackerman. Written with the help of the AI assistants Claude and Fable.
+- Test reports on a real Mark VII: [0.4.3](docs/test-report-0.4.3.md), [0.4.4](docs/test-report-0.4.4.md),
+  [0.6](docs/test-report-0.6.md), [0.7](docs/test-report-0.7.md)
+- How it works, tests, building, demo: [DEVELOPMENT.md](docs/DEVELOPMENT.md)
+- Ideas for later: [ROADMAP.md](docs/ROADMAP.md)
+- [CHANGELOG.md](CHANGELOG.md) · [SECURITY.md](SECURITY.md) (reporting a vulnerability) ·
+  [THIRD-PARTY.md](THIRD-PARTY.md)
 
-*The screenshots come from the demo, with fictional networks (`tools/demo_server.py`).*
+MIT licence. Made by Not_Hackerman, with help from Claude and Fable. The screenshots come from the demo, the network
+names in them are made up.

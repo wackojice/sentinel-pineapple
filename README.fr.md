@@ -1,93 +1,91 @@
 # Sentinel
 
-**Donnez une deuxième vie à votre WiFi Pineapple qui dort dans un tiroir : un gardien discret qui vérifie la sécurité de votre Wi-Fi.**
+Un module pour le WiFi Pineapple Mark VII qui surveille ton propre Wi-Fi au lieu d'attaquer celui des autres.
 
 [English version](README.md)
 
-![L'aperçu de Sentinel : le spectre en direct, vos réseaux, les alertes](docs/screenshots/1-overview.png)
+![Onglet Overview](docs/screenshots/1-overview.png)
 
-## Pourquoi Sentinel ?
+J'avais un Pineapple qui traînait dans un tiroir. Une fois tes tests finis, il n'y a plus grand-chose à faire avec,
+et je me suis dit que je ne devais pas être le seul dans ce cas. Alors j'ai transformé le mien en outil utile à la
+maison : il écoute le Wi-Fi autour, me dit à quel point mes réseaux sont sécurisés, et m'avertit si quelque chose de
+louche apparaît, comme quelqu'un qui copie le nom de mon réseau ou qui déconnecte mes appareils.
 
-Beaucoup de WiFi Pineapple passent leurs journées dans un tiroir. Le test d'intrusion est fini, la formation est
-terminée, ou quelqu'un l'a essayé une fois et n'en a plus eu besoin. Ça reste pourtant une excellente radio Wi-Fi.
+Sentinel ne fait qu'écouter. Il n'envoie rien et n'attaque rien. Par défaut, il ne garde aucune info sur les
+appareils des autres non plus.
 
-Sentinel transforme ce Pineapple en **sentinelle passive de votre propre Wi-Fi**. Branchez-le, ouvrez le module, et il vous dit :
+## Ce qu'il te faut
 
-- **à quel point vos réseaux sont sécurisés**, avec des explications claires (WPA3, PMF, réseaux ouverts, WPS…) ;
-- **qui d'autre émet autour de vous**, et quel canal est le plus calme ;
-- **quand quelque chose ressemble à une attaque** : quelqu'un qui copie le nom de votre réseau, une rafale de trames
-  qui déconnectent vos appareils, une avalanche de faux points d'accès.
+- Un WiFi Pineapple Mark VII (testé avec le firmware 2.1.3)
+- L'adaptateur MK7AC si tu veux aussi le 5 GHz (canaux DFS compris). Sans lui, tu as seulement le 2,4 GHz.
+- Un ordinateur branché au Pineapple. Le Pineapple n'a pas besoin d'Internet.
 
-Sentinel **ne fait qu'écouter**. Il n'émet jamais aucune trame, n'attaque rien et, par défaut, n'enregistre rien
-sur les appareils des autres.
+## Installation
 
-## Ce qu'il vous faut
+Télécharge tous les fichiers de la [dernière version](../../releases/latest) dans un même dossier. Ensuite, depuis
+ce dossier sur ton ordinateur :
 
-- Un **WiFi Pineapple Mark VII** (firmware 2.1.3).
-- En option, mais recommandé : l'**adaptateur MK7AC**, pour surveiller aussi la bande 5 GHz (canaux DFS compris).
-- Un ordinateur relié au Pineapple (USB ou son Wi-Fi d'administration). **Le Pineapple n'a jamais besoin d'Internet.**
+```sh
+sha256sum -c SHA256SUMS          # sur Mac : shasum -a 256 -c SHA256SUMS
+sh install-from-pc.sh --reboot   # il va demander le mot de passe root du Pineapple
+```
 
-## Installation en deux minutes
+Le script copie tout sur le Pineapple, installe le module et `python3-sqlite3` (la seule chose qui manque au
+firmware d'origine), puis le redémarre. Quand il est revenu, recharge la page du Pineapple avec Ctrl+Maj+R et ouvre
+Sentinel. Les autres façons d'installer sont dans la [version anglaise](README.md#install).
 
-1. Téléchargez tous les fichiers de la [dernière version](../../releases/latest) dans un même dossier.
-2. Depuis ce dossier, sur votre ordinateur :
-   ```sh
-   sha256sum -c SHA256SUMS          # macOS : shasum -a 256 -c SHA256SUMS
-   sh install-from-pc.sh --reboot   # demande le mot de passe root du Pineapple
-   ```
-3. Quand le Pineapple est revenu (environ deux minutes), rechargez son interface web avec **Ctrl+Maj+R** et ouvrez **Sentinel**.
+## Pour commencer
 
-Le script vérifie chaque fichier, installe le module et sa seule dépendance (`python3-sqlite3`, le paquet exact
-testé sur un Mark VII), et garde vos réglages et vos données lors des mises à jour. Les autres façons d'installer
-sont dans la [version anglaise](README.md#install-in-two-minutes).
+Dans **Settings**, la Radio 1 est `wlan1mon` (2,4 GHz). Active la Radio 2, choisis `wlan3` (le MK7AC) et clique sur
+« 5 GHz, all channels ». Enregistre, puis clique sur Start monitoring.
 
-## Premier démarrage
+Va ensuite dans **Security** et dis-lui quels réseaux sont à toi. Tape le nom de ton réseau dans la recherche et
+clique sur l'étoile en haut de la liste. Toutes les bornes qui portent ce nom sont marquées. Si tu as plusieurs
+bornes, il va aussi te proposer les autres réseaux qu'elles diffusent. À partir de là, tu as un score pour tes
+propres réseaux, et la détection sait quoi surveiller.
 
-1. **Settings** : la Radio 1 est `wlan1mon` (2,4 GHz). Activez la Radio 2, choisissez le MK7AC (`wlan3`) et
-   **5 GHz, all channels**. Enregistrez, puis appuyez sur **Start monitoring**.
-2. **Marquez vos propres réseaux.** Dans **Security**, tapez le nom de votre réseau dans la recherche, puis cliquez sur
-   l'étoile en haut de la liste : toutes les bornes de ce réseau deviennent les vôtres. Sentinel propose aussi les
-   autres réseaux de la même borne. Vous obtenez un score pour **vos** réseaux, et Sentinel sait quoi protéger.
+![Onglet Security](docs/screenshots/3-security.png)
 
-   ![Security : vos réseaux en premier, une étoile sur chaque ligne et une en haut](docs/screenshots/3-security.png)
+Après ça, laisse-le tourner. Les alertes s'affichent dans **Detection**, avec un compteur sur l'onglet.
 
-3. **Laissez-le écouter.** Les alertes apparaissent dans **Detection**, avec une pastille sur l'onglet.
+![Onglet Detection](docs/screenshots/5-detection.png)
 
-## Ce qu'il détecte
+## Ce qu'il te signale
 
-| Alerte | Quand |
+| Alerte | Ce qui s'est passé |
 |---|---|
-| Imitation de votre réseau | une autre borne annonce le nom de votre réseau (critique si sa sécurité est plus faible) |
-| Deux appareils, une adresse | l'adresse de votre borne annonce deux sécurités ou deux empreintes en même temps |
-| Sécurité affaiblie | votre borne est soudain annoncée avec une sécurité plus faible, ou sans PMF obligatoire |
-| Borne modifiée | l'empreinte de votre borne a changé (souvent une mise à jour : acceptez-la en un clic) |
-| Changement de canal | votre borne reste sur un autre canal |
-| Rafale de désauthentifications | 10 trames en 5 s, ou 30 en une minute, sur une borne |
-| Faux points d'accès | des dizaines de bornes jamais vues d'un coup (gardées hors de la base) |
-| Répond à tous les noms | une borne annonce 5 noms différents en une minute |
+| Imitation de ton réseau | Une autre borne utilise le nom de ton réseau. Critique si sa sécurité est plus faible que la tienne. |
+| Deux appareils, une adresse | L'adresse de ta borne apparaît avec deux réglages différents en même temps. |
+| Sécurité plus faible | Ta borne annonce soudain une sécurité plus faible, ou n'exige plus le PMF. |
+| Borne modifiée | Son empreinte a changé. Souvent une mise à jour ; tu peux accepter le nouvel état en un clic. |
+| Changement de canal | Ta borne est passée sur un canal qu'elle n'utilise pas d'habitude. |
+| Rafale de désauthentifications | 10 trames en 5 secondes, ou 30 en une minute, sur la même borne. |
+| Faux points d'accès | Des dizaines de bornes jamais vues, toutes en même temps. |
+| Répond à tous les noms | Une borne annonce 5 noms différents en une minute. |
 
-![Detection : une imitation de votre réseau, des rafales de désauthentification](docs/screenshots/5-detection.png)
-
-**Limites, en toute honnêteté :** avec deux radios qui sautent d'un canal à l'autre, chaque canal n'est écouté
-qu'une partie du temps, donc une attaque très courte peut passer inaperçue. Sentinel vous prévient ; il ne bloque
-et ne répond jamais à rien.
+À garder en tête : les radios sautent d'un canal à l'autre, donc chaque canal n'est écouté qu'une partie du temps.
+Une attaque très courte peut passer. Sentinel te dit ce qu'il voit, il ne bloque rien.
 
 ## Bon à savoir
 
-- **Vie privée par défaut :** aucune adresse d'appareil (MAC) ni aucun nom de réseau recherché n'est enregistré, sauf si
-  vous activez le suivi.
-- **Léger :** environ 40 % de l'unique cœur du Pineapple avec les deux radios, environ 12 Mo de mémoire, base limitée à 64 Mo.
-- Pendant l'écoute, Sentinel coupe le `wlan3` inutilisé pour que la radio 5 GHz puisse changer de canal. « Stop monitoring »,
-  un redémarrage ou `uninstall.sh` le rendent.
-- Ne lancez pas Recon sur la même radio en même temps. Pour utiliser le Pineapple à autre chose, arrêtez simplement l'écoute.
-- Les canaux 120 à 128 sont refusés au Canada (radars météo) : c'est normal.
+- Les adresses des appareils et les noms de réseaux que cherchent les téléphones ne sont pas enregistrés, sauf si tu
+  l'actives dans Settings.
+- Il utilise environ 40 % du processeur du Pineapple avec les deux radios, environ 12 Mo de mémoire, et la base ne
+  dépasse jamais 64 Mo.
+- Pendant qu'il tourne, Sentinel coupe `wlan3` (le MK7AC en mode normal) pour que la radio 5 GHz puisse changer de
+  canal. L'arrêter, redémarrer ou désinstaller le remet.
+- Ne lance pas Recon sur la même radio en même temps. Si tu as besoin du Pineapple pour autre chose, arrête juste
+  l'écoute.
+- Au Canada, les canaux 120 à 128 sont réservés aux radars météo. Le module les saute, c'est normal.
+- Le Pineapple n'a pas de pile pour son horloge, donc l'heure dérive après un redémarrage. Sentinel calcule les
+  durées avec l'horloge du Pineapple pour que « il y a 5 min » reste juste.
 
 ## Désinstallation
 
 ```sh
-sh /pineapple/modules/Sentinel/uninstall.sh            # garde vos données et python3-sqlite3
+sh /pineapple/modules/Sentinel/uninstall.sh            # garde tes données et python3-sqlite3
 sh /pineapple/modules/Sentinel/uninstall.sh --purge    # efface aussi /root/.Sentinel
 ```
 
-Licence MIT, par Not_Hackerman. Écrit avec l'aide des assistants IA Claude et Fable.
-*Les captures d'écran viennent de la démo, avec des réseaux fictifs.*
+Licence MIT. Fait par Not_Hackerman, avec l'aide de Claude et Fable. Les captures viennent de la démo, les noms de
+réseaux qu'on y voit sont inventés.
