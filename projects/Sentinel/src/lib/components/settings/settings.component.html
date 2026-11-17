@@ -34,11 +34,12 @@
                     </mat-option>
                     <mat-option *ngIf="radio.iface && !iface(radio.iface)" [value]="radio.iface">{{ radio.iface }} (not found)</mat-option>
                 </mat-select>
-                <mat-hint *ngIf="radio.iface && radio.iface.indexOf('wlan1') === 0">
-                    The built-in 2.4 GHz radio, used by Recon by default. If Recon is running on it, turn off channel hopping.
+                <mat-hint *ngIf="radioKind(radio.iface) === '2.4'">
+                    Receives 2.4 GHz only (the Pineapple's built-in radio). If Recon is running on it, turn off channel hopping.
                 </mat-hint>
-                <mat-hint *ngIf="radio.iface && radio.iface.indexOf('wlan3') === 0">
-                    The MK7AC adapter. While it listens, Sentinel takes an idle wlan3 down so the radio can change channel.
+                <mat-hint *ngIf="radioKind(radio.iface) === '5'">
+                    Receives 5 GHz (an adapter such as the MK7AC). While it listens, Sentinel takes an idle
+                    {{ parentOf(radio.iface) }} down so the radio can change channel.
                 </mat-hint>
             </mat-form-field>
 
@@ -51,12 +52,15 @@
 
             <ng-container *ngIf="radio.hopping">
                 <div class="presets">
-                    <button mat-stroked-button *ngFor="let p of presets" (click)="applyPreset(i, p.channels)">{{ p.label }}</button>
+                    <button mat-stroked-button *ngFor="let p of presetsFor(radio.iface)" (click)="applyPreset(i, p.channels)">{{ p.label }}</button>
                 </div>
                 <mat-form-field class="full">
                     <mat-label>Channels to scan</mat-label>
                     <input matInput [(ngModel)]="channelText[i]" placeholder="1, 6, 11">
-                    <mat-hint *ngIf="radioStatus(i)?.unusable_channels?.length">
+                    <mat-hint class="warn" *ngIf="radioKind(radio.iface) === '2.4' && has5Channels(i)">
+                        This radio can't receive 5 GHz: those channels will be skipped. Use an adapter such as the MK7AC for 5 GHz.
+                    </mat-hint>
+                    <mat-hint *ngIf="!(radioKind(radio.iface) === '2.4' && has5Channels(i)) && radioStatus(i)?.unusable_channels?.length">
                         Skipped because the adapter refused them: {{ radioStatus(i).unusable_channels.join(', ') }}
                     </mat-hint>
                 </mat-form-field>

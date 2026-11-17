@@ -208,3 +208,19 @@ figcaption {
     opacity: 0.6;
     text-align: right;
 }
+
+.no-radio {
+    height: 250px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 0 24px;
+    text-align: center;
+    color: #c9d4e0;
+    background: var(--sn-screen);
+    border-radius: 6px;
+    font-size: 14px;
+    line-height: 1.5;
+}

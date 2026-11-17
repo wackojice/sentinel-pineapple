@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.4
+- **Without a 5 GHz adapter**, the Overview's 5 GHz panel says so ("No radio here receives 5 GHz. Plug in an
+  adapter such as the MK7AC…") instead of showing an empty spectrum, or tells you to turn on Radio 2 when a 5 GHz
+  radio is there but unused. Nothing else changes: Sentinel runs on 2.4 GHz only, with no error.
+- **Settings follow what each radio can receive**, not its name: a 2.4 GHz-only radio shows only the 2.4 GHz preset
+  and warns if 5 GHz channels are typed in; the hints describe the radio by its bands, and the 5 GHz adapter can have
+  any interface name (`wlan3`, `wlan4`…). `uninstall.sh`'s manual hint is generic too.
+
 ## 0.7.3
 - **A star at the top of the star column** marks every network shown, or unmarks them when they are all marked
   (half star: some are). "Shown" follows the search and the filters: search for your network's name, then one

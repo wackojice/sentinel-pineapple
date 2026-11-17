@@ -62,6 +62,23 @@ export class OverviewComponent implements OnInit, OnDestroy {
         return 100 * (s.summary[g] || 0) / s.total;
     }
 
+    private bandsOf(name: string): string[] {
+        const it = ((this.status && this.status.interfaces) || []).find((i) => i.name === name);
+        return (it && it.bands) || [];
+    }
+
+    /** Some radio receives 5 GHz (built-in radios of the Mark VII do not; the MK7AC does). */
+    get has5Radio(): boolean {
+        return ((this.status && this.status.interfaces) || []).some((i) => (i.bands || []).indexOf('5') >= 0);
+    }
+
+    /** An enabled radio that receives 5 GHz is set to listen on 5 GHz channels. */
+    get listens5(): boolean {
+        const radios = (this.status && this.status.settings && this.status.settings.radios) || [];
+        return radios.some((r) => r.enabled && r.iface && this.bandsOf(r.iface).indexOf('5') >= 0
+            && (!r.hopping || (r.channels || []).some((c) => c >= 32)));
+    }
+
     /** The worst level among your networks. */
     get myWorst(): string {
         const s = this.data && this.data.security && this.data.security.my_summary;

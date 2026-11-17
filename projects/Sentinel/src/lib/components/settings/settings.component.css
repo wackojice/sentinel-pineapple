@@ -126,3 +126,7 @@ mat-form-field.full {
     line-height: 1.4;
     opacity: .72;
 }
+
+.warn {
+    color: var(--sn-high-ink);
+}

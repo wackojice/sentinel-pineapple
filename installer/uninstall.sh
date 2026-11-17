@@ -75,7 +75,7 @@ if [ -f "$STATE" ]; then
     done
 else
     warn "No record of the radio changes. If needed, run by hand:"
-    warn "  iw dev wlan3mon del ; ip link set wlan3 up"
+    warn "  iw dev <monitor interface> del ; ip link set <its parent> up   (e.g. wlan3mon and wlan3)"
 fi
 
 # 3. The module and its temporary files

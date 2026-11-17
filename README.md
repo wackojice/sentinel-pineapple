@@ -65,7 +65,7 @@ Sentinel.
 
 ## Getting started
 
-In **Settings**, Radio 1 is `wlan1mon` (2.4 GHz). Turn on Radio 2, pick `wlan3` (the MK7AC) and click
+In **Settings**, Radio 1 is `wlan1mon` (2.4 GHz). Turn on Radio 2, pick the MK7AC (usually `wlan3`) and click
 "5 GHz, all channels". Save, then hit Start monitoring.
 
 ![Settings tab](docs/screenshots/4-settings.png)

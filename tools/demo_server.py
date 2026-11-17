@@ -82,6 +82,8 @@ def build_capture(path, start, end, attacks=False):
     t = start
     while t < end:
         for b, s, ch, sec, rssi in NETWORKS:
+            if ch > 14 and os.environ.get('SENTINEL_DEMO_ADAPTER') == 'none':
+                continue  # nothing on 5 GHz without an adapter
             frames.append((t + random.random(), radiotap(freq(ch), rssi + random.randint(-3, 3)) + beacon(b, s, ch, sec)))
             # Some data traffic, heavier on the busy channels
             for _ in range({1: 6, 6: 9, 11: 4, 36: 3}.get(ch, 1)):
@@ -145,8 +147,15 @@ def prepare(tmp):
     m._save_settings(settings)
     radios = test_module.FakeRadios()
     radios.add('wlan1mon', 'phy1', mode='monitor')
-    radios.add('wlan3', 'phy3', mode='managed', up=False)
-    radios.add('wlan3mon', 'phy3', mode='monitor')
+    # SENTINEL_DEMO_ADAPTER=none: no 5 GHz adapter; =wlan4: the adapter under another name
+    adapter = os.environ.get('SENTINEL_DEMO_ADAPTER', 'wlan3')
+    if adapter != 'none':
+        radios.add(adapter, 'phy3', mode='managed', up=False)
+        radios.add(adapter + 'mon', 'phy3', mode='monitor')
+    if adapter != 'wlan3':
+        settings['radios'][1].update(iface='' if adapter == 'none' else adapter + 'mon',
+                                     enabled=adapter != 'none')
+        m._save_settings(settings)
     def interfaces():
         out = radios.wireless_interfaces()
         for i in out:
@@ -180,10 +189,10 @@ def engine_status():
             'radios': [
                 {'iface': 'wlan1mon', 'hopping': True, 'current_channel': [1, 6, 11][int(now) % 3],
                  'channels': [1, 6, 11, 2, 7, 3, 8, 4, 9, 5, 10], 'unusable_channels': [], 'frames': 151220, 'error': None},
-                {'iface': 'wlan3mon', 'hopping': True, 'current_channel': chans5[int(now) % 5],
+                {'iface': os.environ.get('SENTINEL_DEMO_ADAPTER', 'wlan3') + 'mon', 'hopping': True, 'current_channel': chans5[int(now) % 5],
                  'channels': [36, 40, 44, 48, 52, 56, 60, 64, 100, 104, 108, 112, 116, 120, 124, 128, 132,
                               136, 140, 144, 149, 153, 157, 161, 165],
-                 'unusable_channels': [120, 124, 128], 'frames': 32182, 'error': None}]}
+                 'unusable_channels': [120, 124, 128], 'frames': 32182, 'error': None}][:1 if os.environ.get('SENTINEL_DEMO_ADAPTER') == 'none' else 2]}
 
 
 def refresh_status():

@@ -14,10 +14,15 @@
                 <figure>
                     <figcaption>
                         <span class="band-name">5 GHz</span>
-                        <span class="band-count">{{ count('5') }} networks</span>
+                        <span class="band-count" *ngIf="listens5 || count('5')">{{ count('5') }} networks</span>
                     </figcaption>
-                    <lib-sentinel-spectrum [aps]="data?.spectrum" band="5" [recommended]="best('5')"
+                    <lib-sentinel-spectrum *ngIf="listens5 || count('5')" [aps]="data?.spectrum" band="5" [recommended]="best('5')"
                                            [live]="live" [height]="250"></lib-sentinel-spectrum>
+                    <div class="no-radio" *ngIf="!listens5 && !count('5')">
+                        <ng-container *ngIf="!has5Radio">No radio here receives 5 GHz. Plug in an adapter such as the MK7AC to watch this band.</ng-container>
+                        <ng-container *ngIf="has5Radio">A radio can receive 5 GHz but none listens there yet: turn on Radio 2 in Settings.</ng-container>
+                        <button mat-stroked-button (click)="open.emit('settings')">Open Settings</button>
+                    </div>
                 </figure>
             </div>
         </div>

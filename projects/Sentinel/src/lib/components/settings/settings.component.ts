@@ -93,6 +93,27 @@ export class SettingsComponent implements OnChanges {
         }).catch((e) => this.toast(e));
     }
 
+    /** '2.4' for a radio that only receives 2.4 GHz, '5' when it receives 5 GHz, '' when unknown. */
+    radioKind(name: string): string {
+        const it = name ? this.iface(name) : null;
+        const bands = (it && it.bands) || [];
+        if (bands.indexOf('5') >= 0) { return '5'; }
+        return bands.indexOf('2.4') >= 0 ? '2.4' : '';
+    }
+
+    parentOf(name: string): string {
+        return name && name.slice(-3) === 'mon' ? name.slice(0, -3) : name;
+    }
+
+    /** Only the presets this radio can use: no 5 GHz buttons on a 2.4 GHz-only radio. */
+    presetsFor(name: string): any[] {
+        return this.radioKind(name) === '2.4' ? this.presets.filter((p) => p.channels.every((c) => c <= 14)) : this.presets;
+    }
+
+    has5Channels(index: number): boolean {
+        return (this.channelText[index] || '').split(/[\s,]+/).some((c) => +c >= 32);
+    }
+
     applyPreset(index: number, channels: number[]): void {
         this.channelText[index] = channels.join(', ');
     }

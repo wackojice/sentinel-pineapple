@@ -54,7 +54,7 @@ Sentinel. Les autres façons d'installer sont dans la [version anglaise](README.
 
 ## Pour commencer
 
-Dans **Settings**, la Radio 1 est `wlan1mon` (2,4 GHz). Active la Radio 2, choisis `wlan3` (le MK7AC) et clique sur
+Dans **Settings**, la Radio 1 est `wlan1mon` (2,4 GHz). Active la Radio 2, choisis le MK7AC (en général `wlan3`) et clique sur
 « 5 GHz, all channels ». Enregistre, puis clique sur Start monitoring.
 
 Va ensuite dans **Security** et dis-lui quels réseaux sont à toi. Tape le nom de ton réseau dans la recherche et
