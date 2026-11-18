@@ -31,18 +31,18 @@ random.seed(7)
 
 # Fictional networks: (bssid, ssid, channel, security, rssi)
 NETWORKS = [
-    ('02:10:00:00:00:01', 'Maison-Tremblay', 1, 'transition', -42),
-    ('02:10:00:00:00:02', 'Maison-Tremblay-5G', 36, 'transition', -48),
-    ('02:10:00:00:00:03', 'Atelier', 6, 'wpa2', -61),
-    ('02:10:00:00:00:04', 'Cafe-du-Coin', 11, 'open', -74),
-    ('02:10:00:00:00:05', 'Bureau-Labo', 112, 'wpa3', -55),
-    ('02:10:00:00:00:06', 'Voisin-2e', 6, 'wpa2', -80),
-    ('02:10:00:00:00:07', 'Imprimante-HP', 11, 'wpa2-wps', -69),
-    ('02:10:00:00:00:08', 'VieuxRouteur', 1, 'wep', -83),
-    ('02:10:00:00:00:09', 'Invites', 149, 'owe', -66),
+    ('02:10:00:00:00:01', 'Smith-Home', 1, 'transition', -42),
+    ('02:10:00:00:00:02', 'Smith-Home-5G', 36, 'transition', -48),
+    ('02:10:00:00:00:03', 'Workshop', 6, 'wpa2', -61),
+    ('02:10:00:00:00:04', 'Corner-Cafe', 11, 'open', -74),
+    ('02:10:00:00:00:05', 'Office-Lab', 112, 'wpa3', -55),
+    ('02:10:00:00:00:06', 'Neighbor-2F', 6, 'wpa2', -80),
+    ('02:10:00:00:00:07', 'HP-Printer', 11, 'wpa2-wps', -69),
+    ('02:10:00:00:00:08', 'OldRouter', 1, 'wep', -83),
+    ('02:10:00:00:00:09', 'Guests', 149, 'owe', -66),
     ('02:10:00:00:00:0a', '', 64, 'wpa2', -77),            # hidden
-    ('02:10:00:00:00:0b', 'Condo-304', 44, 'wpa2', -71),
-    ('02:10:00:00:00:0c', 'Condo-304', 11, 'wpa2', -79),
+    ('02:10:00:00:00:0b', 'Apt-304', 44, 'wpa2', -71),
+    ('02:10:00:00:00:0c', 'Apt-304', 11, 'wpa2', -79),
 ]
 
 SUITE = {'psk': 2, 'sae': 8, 'owe': 18}
@@ -91,9 +91,9 @@ def build_capture(path, start, end, attacks=False):
         frames.append((t + 0.5, radiotap(freq(6), -60) + probe_req('02:30:00:00:00:01', 'Hotel-Lobby')))
         t += 10
     if attacks:
-        # An open copy of "Maison-Tremblay" on another channel
+        # An open copy of "Smith-Home" on another channel
         for j in range(8):
-            frames.append((end - 400 + j * 0.5, radiotap(freq(11), -58) + beacon('0a:66:00:00:00:09', 'Maison-Tremblay', 11, 'open')))
+            frames.append((end - 400 + j * 0.5, radiotap(freq(11), -58) + beacon('0a:66:00:00:00:09', 'Smith-Home', 11, 'open')))
         # Deauthentication bursts: on a neighbour, then on your network
         for j in range(40):
             frames.append((end - 300 + j * 0.05, radiotap(freq(6), -58) + deauth('02:10:00:00:00:03', '02:20:00:00:00:05')))
@@ -122,7 +122,7 @@ def prepare(tmp):
     build_capture(pcap, now - 1200, now - 600)
     subprocess.run([sys.executable, m.ENGINE, '--pcap', pcap, '--db', m.DB_PATH], check=True,
                    stdout=subprocess.DEVNULL)
-    # Mark the two access points of "Maison-Tremblay" as the user's own
+    # Mark the two access points of "Smith-Home" as the user's own
     import mynets
     import store
     conn = store.connect(m.DB_PATH)
