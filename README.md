@@ -101,8 +101,8 @@ After that, leave it running. Alerts show up in **Detection**, with a counter on
   every 30 seconds.
 - While it's running, Sentinel turns off `wlan3` (the MK7AC in normal mode) so the 5 GHz radio can change channel.
   Stopping, rebooting or uninstalling brings it back.
-- Don't run Recon on the same radio at the same time. If you need the Pineapple for something else, just stop
-  monitoring.
+- **Don't run Recon while Sentinel is listening.** Both use the same radios (the built-in one and the MK7AC), so Recon
+  misses networks. Stop monitoring before a Recon scan, then start it again. The main page reminds you.
 - In Canada, channels 120 to 128 are blocked for weather radar. The module skips them, that's normal.
 - The Pineapple has no battery for its clock, so its time drifts after a reboot. Sentinel shows times based on the
   Pineapple's own clock so "5 min ago" stays right.
@@ -125,7 +125,8 @@ sh /pineapple/modules/Sentinel/uninstall.sh --purge    # also deletes /root/.Sen
 ## More
 
 - Test reports on a real Mark VII: [0.4.3](docs/test-report-0.4.3.md), [0.4.4](docs/test-report-0.4.4.md),
-  [0.6](docs/test-report-0.6.md), [0.7](docs/test-report-0.7.md)
+  [0.6](docs/test-report-0.6.md), [0.7](docs/test-report-0.7.md),
+  [0.8](docs/test-report-0.8.md)
 - How it works, tests, building, demo: [DEVELOPMENT.md](docs/DEVELOPMENT.md)
 - Ideas for later: [ROADMAP.md](docs/ROADMAP.md)
 - [CHANGELOG.md](CHANGELOG.md) · [SECURITY.md](SECURITY.md) (reporting a vulnerability) ·

@@ -18,7 +18,8 @@ recommended: nearby network names and addresses should not leave the home.
 
 ## Before a submission to Hak5
 - The P1 findings of the pre-release audit are fixed in 0.8.0 (3.2, 3.4, 4.1, 6.1, see the changelog).
-- Two tests on the device are still to do: an install on a factory-reset Mark VII, and a session with Recon running.
+- One test on the device is still to do: an install on a factory-reset Mark VII. The session with Recon running was
+  done in 0.8.0 (see `docs/test-report-0.8.md`).
 
 ## More detection rules
 These ideas come from another open project, [blue-team-wifi-wids](https://github.com/SinLoops333/blue-team-wifi-wids)

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.1
+- **Recon.** Tested on the device: while Sentinel listens, a Recon scan misses networks, because Sentinel holds both
+  radios (`wlan1mon`, and the MK7AC it takes out of managed mode). Nothing crashes, but they can't share. The main
+  page now shows a warning the whole time Sentinel is listening: stop monitoring before a Recon scan. The README says
+  the same. Test report: `docs/test-report-0.8.md`.
+
 ## 0.8.0
 The last findings of the pre-release audit (P1), before a submission to Hak5.
 - **A radio that stops working is reopened.** If an adapter is unplugged or its driver resets, Sentinel closes it,

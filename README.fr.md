@@ -82,8 +82,9 @@ Après ça, laisse-le tourner. Les alertes s'affichent dans **Detection**, avec 
   Sentinel essaie de la rouvrir toutes les 30 secondes.
 - Pendant qu'il tourne, Sentinel coupe `wlan3` (le MK7AC en mode normal) pour que la radio 5 GHz puisse changer de
   canal. L'arrêter, redémarrer ou désinstaller le remet.
-- Ne lance pas Recon sur la même radio en même temps. Si tu as besoin du Pineapple pour autre chose, arrête juste
-  l'écoute.
+- **Ne lance pas Recon pendant que Sentinel écoute.** Les deux utilisent les mêmes radios (celle du Pineapple et le
+  MK7AC), donc Recon rate des réseaux. Arrête l'écoute avant un scan Recon, puis relance-la. La page principale te le
+  rappelle.
 - Au Canada, les canaux 120 à 128 sont réservés aux radars météo. Le module les saute, c'est normal.
 - Le Pineapple n'a pas de pile pour son horloge, donc l'heure dérive après un redémarrage. Sentinel calcule les
   durées avec l'horloge du Pineapple pour que « il y a 5 min » reste juste.

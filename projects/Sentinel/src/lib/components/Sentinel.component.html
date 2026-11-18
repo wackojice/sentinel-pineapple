@@ -46,8 +46,10 @@
         </div>
     </mat-card>
 
-    <p class="clock-note" *ngIf="sharesRecon">
-        Sentinel changes channels on wlan1mon, the radio Recon uses. Stop monitoring before you run a Recon scan.
+    <p class="recon-note" *ngIf="sharesRecon">
+        <mat-icon>warning</mat-icon>
+        <span>Don't run Recon while Sentinel is listening: both use the same radios, so Recon misses networks.
+        Stop monitoring before a Recon scan.</span>
     </p>
     <p class="clock-note" *ngIf="clockDrift">
         The Pineapple's clock is {{ clockDrift }} this computer's (no Internet to set it).

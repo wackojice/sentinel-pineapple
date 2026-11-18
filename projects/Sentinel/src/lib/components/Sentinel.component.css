@@ -154,6 +154,22 @@
     padding: 16px 2px 4px;
 }
 
+.recon-note {
+    margin: 0 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--sn-medium-ink);
+}
+
+.recon-note mat-icon {
+    flex: none;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
 .clock-note {
     margin: 0 0 12px;
     font-size: 12px;

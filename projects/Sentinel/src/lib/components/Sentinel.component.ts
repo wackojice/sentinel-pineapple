@@ -147,9 +147,12 @@ export class SentinelComponent implements OnInit, AfterViewInit, OnDestroy {
         return this.state === 'on' && this.radios.some((r) => !!r.error);
     }
 
-    /** Sentinel hops channels on the radio the Pineapple's Recon also uses (audit 3.2). */
+    /**
+     * While listening, Sentinel holds the radios Recon needs (wlan1mon, and the 5 GHz adapter it
+     * takes out of managed mode): a Recon scan then misses networks (audit 3.2, tested in 0.8.0).
+     */
     get sharesRecon(): boolean {
-        return this.state === 'on' && this.radios.some((r) => r.iface === 'wlan1mon' && r.hopping);
+        return this.state === 'on';
     }
 
     get stateLabel(): string {
