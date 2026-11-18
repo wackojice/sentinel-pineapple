@@ -11,6 +11,9 @@ lot of people are in the same spot. So I turned mine into something useful at ho
 the house, tells me how secure my networks are, and warns me if something weird shows up, like someone copying my
 network's name or kicking devices off.
 
+The idea is to plug it in somewhere, start it, and leave it running for good, like a sentinel for your Wi-Fi.
+It's built for that: it stays light on the Pineapple and its database never grows past a fixed size.
+
 Sentinel only listens. It never sends anything and never attacks anything. By default it doesn't keep any info
 about other people's devices either.
 

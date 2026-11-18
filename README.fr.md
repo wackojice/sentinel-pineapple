@@ -11,6 +11,9 @@ et je me suis dit que je ne devais pas être le seul dans ce cas. Alors j'ai tra
 maison : il écoute le Wi-Fi autour, me dit à quel point mes réseaux sont sécurisés, et m'avertit si quelque chose de
 louche apparaît, comme quelqu'un qui copie le nom de mon réseau ou qui déconnecte mes appareils.
 
+L'idée, c'est de le brancher quelque part, de le démarrer et de le laisser rouler pour de bon, comme une sentinelle
+pour ton Wi-Fi. Il est fait pour ça : il reste léger pour le Pineapple et sa base ne dépasse jamais une taille fixe.
+
 Sentinel ne fait qu'écouter. Il n'envoie rien et n'attaque rien. Par défaut, il ne garde aucune info sur les
 appareils des autres non plus.
 
