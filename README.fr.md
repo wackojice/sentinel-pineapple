@@ -43,6 +43,9 @@ Une attaque très courte peut passer. Sentinel te dit ce qu'il voit, il ne bloqu
 
 ## Installation
 
+Il n'est pas (encore) dans la boutique de modules du Pineapple : tu l'installes depuis ton ordinateur avec un
+script. Une fois installé, Sentinel apparaît dans le menu Modules comme n'importe quel autre module.
+
 Télécharge tous les fichiers de la [dernière version](../../releases/latest) dans un même dossier. Ensuite, depuis
 ce dossier sur ton ordinateur :
 

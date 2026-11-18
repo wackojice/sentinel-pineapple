@@ -43,6 +43,9 @@ time. A very short attack can slip through. Sentinel tells you what it sees, it 
 
 ## Install
 
+It's not in the Pineapple's module store (yet), so you install it from your computer with a script. Once it's in,
+Sentinel shows up in the Modules menu like any other module.
+
 Grab all the files from the [latest release](../../releases/latest) and put them in one folder. Then, from that
 folder on your computer:
 
