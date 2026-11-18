@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.2
+- The Recon warning on the main page has an **X** to close it. It stays hidden in that browser (it shows again in
+  another browser, or if the browser's site data is cleared).
+
 ## 0.8.1
 - **Recon.** Tested on the device: while Sentinel listens, a Recon scan misses networks, because Sentinel holds both
   radios (`wlan1mon`, and the MK7AC it takes out of managed mode). Nothing crashes, but they can't share. The main

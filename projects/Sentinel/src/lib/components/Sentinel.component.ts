@@ -24,6 +24,7 @@ export class SentinelComponent implements OnInit, AfterViewInit, OnDestroy {
     failures = 0;
     tabIndex = 0;
     dark = false;
+    reconHidden = readFlag(RECON_NOTE_KEY);
     private timer: any;
 
     readonly tabs: Tab[] = [
@@ -152,7 +153,13 @@ export class SentinelComponent implements OnInit, AfterViewInit, OnDestroy {
      * takes out of managed mode): a Recon scan then misses networks (audit 3.2, tested in 0.8.0).
      */
     get sharesRecon(): boolean {
-        return this.state === 'on';
+        return this.state === 'on' && !this.reconHidden;
+    }
+
+    /** The user has read the Recon warning: hide it in this browser. */
+    hideReconNote(): void {
+        this.reconHidden = true;
+        writeFlag(RECON_NOTE_KEY);
     }
 
     get stateLabel(): string {
@@ -193,6 +200,17 @@ export class SentinelComponent implements OnInit, AfterViewInit, OnDestroy {
     get canStart(): boolean {
         return !!this.status && !!this.status.dependencies && this.status.dependencies.sqlite;
     }
+}
+
+const RECON_NOTE_KEY = 'sentinel.reconNoteHidden';
+
+/** A flag kept in this browser. Storage can be blocked: then the note simply shows again. */
+function readFlag(key: string): boolean {
+    try { return window.localStorage.getItem(key) === '1'; } catch (e) { return false; }
+}
+
+function writeFlag(key: string): void {
+    try { window.localStorage.setItem(key, '1'); } catch (e) { /* not kept, nothing else to do */ }
 }
 
 /** Relative luminance (0 dark .. 1 light) of a CSS rgb()/rgba() colour. */

@@ -84,7 +84,7 @@ Après ça, laisse-le tourner. Les alertes s'affichent dans **Detection**, avec 
   canal. L'arrêter, redémarrer ou désinstaller le remet.
 - **Ne lance pas Recon pendant que Sentinel écoute.** Les deux utilisent les mêmes radios (celle du Pineapple et le
   MK7AC), donc Recon rate des réseaux. Arrête l'écoute avant un scan Recon, puis relance-la. La page principale te le
-  rappelle.
+  rappelle (clique sur le X une fois lu).
 - Au Canada, les canaux 120 à 128 sont réservés aux radars météo. Le module les saute, c'est normal.
 - Le Pineapple n'a pas de pile pour son horloge, donc l'heure dérive après un redémarrage. Sentinel calcule les
   durées avec l'horloge du Pineapple pour que « il y a 5 min » reste juste.

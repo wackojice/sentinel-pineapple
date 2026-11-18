@@ -50,6 +50,10 @@
         <mat-icon>warning</mat-icon>
         <span>Don't run Recon while Sentinel is listening: both use the same radios, so Recon misses networks.
         Stop monitoring before a Recon scan.</span>
+        <button mat-icon-button class="note-close" (click)="hideReconNote()"
+                aria-label="Hide this warning" title="Hide this warning">
+            <mat-icon>close</mat-icon>
+        </button>
     </p>
     <p class="clock-note" *ngIf="clockDrift">
         The Pineapple's clock is {{ clockDrift }} this computer's (no Internet to set it).
