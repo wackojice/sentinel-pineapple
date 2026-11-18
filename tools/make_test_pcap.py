@@ -57,11 +57,11 @@ def rt(ch, rssi, fcs=False):
 
 NETWORKS = [
     # bssid, ssid, channel, rssi, cap privacy, extra IEs
-    ('02:aa:00:00:00:01', 'MaMaison', 6, -45, True, [rsn_ie(['PSK'])]),
-    ('02:aa:00:00:00:02', 'Bureau', 36, -60, True, [rsn_ie(['SAE'], mfpc=True, mfpr=True), VHT_IE]),
-    ('02:aa:00:00:00:03', 'Cafe-Gratuit', 1, -70, False, []),
-    ('02:aa:00:00:00:04', 'VieuxRouteur', 11, -80, True, []),
-    ('02:aa:00:00:00:05', 'Voisin', 6, -55, True,
+    ('02:aa:00:00:00:01', 'MyHome', 6, -45, True, [rsn_ie(['PSK'])]),
+    ('02:aa:00:00:00:02', 'Office', 36, -60, True, [rsn_ie(['SAE'], mfpc=True, mfpr=True), VHT_IE]),
+    ('02:aa:00:00:00:03', 'Free-Cafe', 1, -70, False, []),
+    ('02:aa:00:00:00:04', 'OldRouter', 11, -80, True, []),
+    ('02:aa:00:00:00:05', 'Neighbor', 6, -55, True,
      [rsn_ie(['PSK'], pairwise=('TKIP', 'CCMP'), group='TKIP'), wpa1_ie(), WPS_IE]),
     ('02:aa:00:00:00:06', 'Transition', 11, -65, True, [rsn_ie(['PSK', 'SAE'], mfpc=True)]),
     ('02:aa:00:00:00:07', 'Entreprise', 149, -72, True,
@@ -131,7 +131,7 @@ def main(path):
     w.write(pr)
 
     # Probe requests (client remembering networks)
-    for ssid in ['MaMaison', 'Aeroport-WiFi', 'Hotel-Paris', '']:
+    for ssid in ['MyHome', 'Aeroport-WiFi', 'Hotel-Paris', '']:
         p = (rt(6, -40) / Dot11(type=0, subtype=4, addr1='ff:ff:ff:ff:ff:ff',
                                  addr2='a4:83:e7:11:22:33', addr3='ff:ff:ff:ff:ff:ff') /
              Dot11ProbeReq() / Dot11Elt(ID=0, info=ssid.encode()))
@@ -139,7 +139,7 @@ def main(path):
         w.write(p)
         t += 0.01
 
-    # Data frames: two clients on MaMaison (one with a randomized MAC)
+    # Data frames: two clients on MyHome (one with a randomized MAC)
     for client in ['a4:83:e7:11:22:33', '7a:11:22:33:44:55']:
         for _ in range(5):
             d = (rt(6, -42) / Dot11(type=2, subtype=0, FCfield=0x01,
@@ -149,7 +149,7 @@ def main(path):
             w.write(d)
             t += 0.01
 
-    # Deauth burst against MaMaison (spoofed from the AP)
+    # Deauth burst against MyHome (spoofed from the AP)
     for _ in range(120):
         d = (rt(6, -30) / Dot11(type=0, subtype=12, addr1='a4:83:e7:11:22:33',
                                  addr2='02:aa:00:00:00:01', addr3='02:aa:00:00:00:01') /

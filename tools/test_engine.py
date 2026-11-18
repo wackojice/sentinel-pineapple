@@ -56,14 +56,14 @@ class EngineTest(unittest.TestCase):
     def test_security_is_classified(self):
         aps = self.replay_sample()
         expected = {
-            'MaMaison': ('WPA2-PSK', 'none'), 'Bureau': ('WPA3-SAE', 'required'),
-            'Cafe-Gratuit': ('Open', 'none'), 'VieuxRouteur': ('WEP', 'none'),
-            'Voisin': ('WPA/WPA2-PSK', 'none'), 'Transition': ('WPA3-Transition', 'capable'),
+            'MyHome': ('WPA2-PSK', 'none'), 'Office': ('WPA3-SAE', 'required'),
+            'Free-Cafe': ('Open', 'none'), 'OldRouter': ('WEP', 'none'),
+            'Neighbor': ('WPA/WPA2-PSK', 'none'), 'Transition': ('WPA3-Transition', 'capable'),
             'Entreprise': ('WPA2-Enterprise', 'required'), 'Enhanced-Open': ('OWE', 'required'),
         }
         for ssid, (security, pmf) in expected.items():
             self.assertEqual((aps[ssid]['security'], aps[ssid]['pmf']), (security, pmf), ssid)
-        self.assertEqual(aps['Voisin']['wps'], 1)
+        self.assertEqual(aps['Neighbor']['wps'], 1)
 
     def test_hidden_ssid_is_revealed_by_probe_response(self):
         aps = self.replay_sample()
@@ -91,11 +91,11 @@ class EngineTest(unittest.TestCase):
         self.replay_sample()
         audit = analysis.security_audit(self.conn, now=1700000010)
         grades = dict((n['ssid'], n['grade']) for n in audit['networks'])
-        self.assertEqual(grades['Cafe-Gratuit'], 'critical')
-        self.assertEqual(grades['VieuxRouteur'], 'critical')
-        self.assertEqual(grades['Voisin'], 'high')
-        self.assertEqual(grades['MaMaison'], 'medium')
-        self.assertEqual(grades['Bureau'], 'good')
+        self.assertEqual(grades['Free-Cafe'], 'critical')
+        self.assertEqual(grades['OldRouter'], 'critical')
+        self.assertEqual(grades['Neighbor'], 'high')
+        self.assertEqual(grades['MyHome'], 'medium')
+        self.assertEqual(grades['Office'], 'good')
 
     def test_ap_channel_does_not_drift_when_heard_on_neighbouring_channels(self):
         for tuned in (6, 5, 7, 4):
@@ -208,12 +208,12 @@ class EngineTest(unittest.TestCase):
         # Roadmap 4.7: marking networks adds a score, without changing the neighbourhood's
         self.replay_sample()
         plain = analysis.security_audit(self.conn, now=1700000010)
-        mine = set(n['bssid'] for n in plain['networks'] if n['ssid'] in ('Bureau', 'MaMaison'))
+        mine = set(n['bssid'] for n in plain['networks'] if n['ssid'] in ('Office', 'MyHome'))
         audit = analysis.security_audit(self.conn, now=1700000010, mine=mine)
         self.assertEqual((audit['score'], audit['summary']), (plain['score'], plain['summary']))
         self.assertEqual(audit['my_total'], 2)
-        self.assertEqual(audit['my_score'], 50)  # Bureau good, MaMaison medium
-        self.assertEqual(set(n['ssid'] for n in audit['networks'][:2]), {'Bureau', 'MaMaison'})
+        self.assertEqual(audit['my_score'], 50)  # Office good, MyHome medium
+        self.assertEqual(set(n['ssid'] for n in audit['networks'][:2]), {'Office', 'MyHome'})
         self.assertTrue(all(n['mine'] == (n['bssid'] in mine) for n in audit['networks']))
         self.assertIsNone(plain['my_score'])
         arcs = analysis.spectrum(self.conn, max_age=10 ** 10, mine=mine)
