@@ -74,7 +74,9 @@ Après ça, laisse-le tourner. Les alertes s'affichent dans **Detection**, avec 
 - Les adresses des appareils et les noms de réseaux que cherchent les téléphones ne sont pas enregistrés, sauf si tu
   l'actives dans Settings.
 - Il utilise environ 40 % du processeur du Pineapple avec les deux radios, environ 12 Mo de mémoire, et la base ne
-  dépasse jamais 64 Mo.
+  dépasse jamais 64 Mo. Si quelqu'un inonde l'air de trames, il en traite au plus 2 000 par seconde et saute le reste.
+- Si une radio arrête de fonctionner (adaptateur débranché, pilote qui redémarre), le voyant passe à l'orange et
+  Sentinel essaie de la rouvrir toutes les 30 secondes.
 - Pendant qu'il tourne, Sentinel coupe `wlan3` (le MK7AC en mode normal) pour que la radio 5 GHz puisse changer de
   canal. L'arrêter, redémarrer ou désinstaller le remet.
 - Ne lance pas Recon sur la même radio en même temps. Si tu as besoin du Pineapple pour autre chose, arrête juste

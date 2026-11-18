@@ -14,7 +14,7 @@
                     <circle class="dot" cx="24" cy="31" r="2.4"></circle>
                 </svg>
                 <div>
-                    <div class="lamp" [ngClass]="'lamp-' + state" role="status">
+                    <div class="lamp" [ngClass]="'lamp-' + (degraded ? 'wait' : state)" role="status">
                         <span class="bulb"></span>{{ stateLabel }}
                     </div>
                     <div class="radios" *ngIf="radios.length">
@@ -46,6 +46,9 @@
         </div>
     </mat-card>
 
+    <p class="clock-note" *ngIf="sharesRecon">
+        Sentinel changes channels on wlan1mon, the radio Recon uses. Stop monitoring before you run a Recon scan.
+    </p>
     <p class="clock-note" *ngIf="clockDrift">
         The Pineapple's clock is {{ clockDrift }} this computer's (no Internet to set it).
         Times are shown on the Pineapple's clock, so "x min ago" stays right.

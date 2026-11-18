@@ -142,8 +142,19 @@ export class SentinelComponent implements OnInit, AfterViewInit, OnDestroy {
         return backend[this.status.state] || 'off';
     }
 
+    /** Listening, but a radio is in error (lost adapter, stuck channel...). */
+    get degraded(): boolean {
+        return this.state === 'on' && this.radios.some((r) => !!r.error);
+    }
+
+    /** Sentinel hops channels on the radio the Pineapple's Recon also uses (audit 3.2). */
+    get sharesRecon(): boolean {
+        return this.state === 'on' && this.radios.some((r) => r.iface === 'wlan1mon' && r.hopping);
+    }
+
     get stateLabel(): string {
         if (!this.status) { return 'Connecting…'; }
+        if (this.degraded) { return 'Listening, with a radio problem'; }
         return {
             on: 'Listening', wait: 'Starting…', stalled: 'Not responding',
             off: 'Stopped', lost: 'No answer from the Pineapple'

@@ -49,6 +49,12 @@ FLUSH_INTERVAL = 5.0
 RETENTION_INTERVAL = 600.0
 BAD_CHANNEL_FAILURES = 3     # failures in a row before a channel is skipped
 USE_NL80211 = True           # channel changes without starting `iw` (falls back to it)
+RADIO_RETRY = 30.0           # seconds between two attempts to reopen a lost radio
+# Frame budget per second (all radios). Normal listening is about 150 frames/s. Above SOFT,
+# only management frames are processed (beacons, deauthentications...); above HARD, frames are
+# dropped and counted. A flood then costs reading the socket, not decoding every frame.
+FRAME_BUDGET_SOFT = 800
+FRAME_BUDGET_HARD = 2000
 SUMMARY_INTERVAL = 60.0      # seconds between two dashboard summaries (summary.py)
 NICENESS = 10                # live capture runs below the web interface
 BAD_CHANNEL_RETRY = 300.0    # seconds before skipped channels are tried again
@@ -154,12 +160,13 @@ class Radio(object):
         self.hopper = None
         self.frames = 0
         self.error = None
+        self.retry_at = None           # set while the radio is lost
 
     def open(self):
         type_path = '/sys/class/net/%s/type' % self.iface
         if not os.path.exists(type_path):
             raise RuntimeError('Interface %s does not exist' % self.iface)
-        with open(type_path) as fh:
+        with open(type_path, encoding='utf-8') as fh:
             link_type = int(fh.read().strip())
         if link_type != ARPHRD_IEEE80211_RADIOTAP:
             raise RuntimeError('Interface %s is not in monitor mode' % self.iface)
@@ -178,8 +185,13 @@ class Radio(object):
     def close(self):
         if self.hopper:
             self.hopper.stop()
+            self.hopper = None
         if self.sock:
-            self.sock.close()
+            try:
+                self.sock.close()
+            except OSError:
+                pass
+            self.sock = None
 
     def status(self):
         return {
@@ -204,7 +216,7 @@ def read_local_macs(sysfs='/sys/class/net'):
         return out
     for name in names:
         try:
-            with open(os.path.join(sysfs, name, 'address')) as fh:
+            with open(os.path.join(sysfs, name, 'address'), encoding='utf-8') as fh:
                 mac = fh.read().strip().lower()
         except (IOError, OSError):
             continue
@@ -240,6 +252,9 @@ class Engine(object):
         self.last_error = None
         self.frames_rejected = 0       # frames that made the decoder or aggregator fail
         self.db_errors = 0             # flushes lost to a database error (full, locked...)
+        self.frames_over_budget = 0    # frames skipped by the per-second budget (a flood)
+        self._budget_second = 0
+        self._budget_used = 0
         self._errors_logged = {}       # error type -> count, to log each kind only a few times
         self.last_ts = None            # time of the last frame: the detector's clock (pcap replay too)
         self.last_status = {}
@@ -300,6 +315,49 @@ class Engine(object):
             if seen < 3:
                 print('Rejected a frame (%s: %s)' % (kind, str(e)[:120]), file=sys.stderr, flush=True)
 
+    def within_budget(self, buf, ts):
+        """The per-second frame budget (audit 4.1). Over the soft limit only management frames
+        go through, over the hard limit nothing does. Reads two bytes, never raises."""
+        second = int(ts)
+        if second != self._budget_second:
+            self._budget_second = second
+            self._budget_used = 0
+        self._budget_used += 1
+        if self._budget_used <= FRAME_BUDGET_SOFT:
+            return True
+        if self._budget_used <= FRAME_BUDGET_HARD:
+            try:
+                hdr = buf[2] | (buf[3] << 8)        # radiotap length
+                if (buf[hdr] >> 2) & 3 == 0:          # 802.11 management frame
+                    return True
+            except IndexError:
+                pass
+        self.frames_over_budget += 1
+        return False
+
+    def _lose(self, radio, error, now):
+        """A radio stopped working (adapter unplugged, driver reset): close it and try again
+        every RADIO_RETRY seconds, while the status says it is in error (audit 3.4)."""
+        radio.close()
+        radio.error = '%s stopped working (%s). Trying again every %d s.' % (
+            radio.iface, error, RADIO_RETRY)
+        radio.retry_at = now + RADIO_RETRY
+        self._log_once('radio-' + radio.iface, radio.error)
+
+    def _retry(self, radio, now):
+        try:
+            radio.open()
+        except Exception as e:  # still gone: try later
+            radio.close()
+            radio.retry_at = now + RADIO_RETRY
+            radio.error = '%s is not available (%s). Trying again every %d s.' % (
+                radio.iface, e, RADIO_RETRY)
+            return False
+        radio.error = None
+        radio.retry_at = None
+        self._log_once('radio-' + radio.iface, '%s is back' % radio.iface)
+        return True
+
     def _handle(self, buf, ts):
         try:
             f = dot11.parse_frame(buf, want_data=True)
@@ -351,6 +409,8 @@ class Engine(object):
             'frames_per_sec': round(self.fps, 1),
             'frames_rejected': self.frames_rejected,
             'dropped_by_limits': self.agg.dropped,
+            'frames_over_budget': self.frames_over_budget,
+            'healthy': self.running and not any(r.get('error') for r in radios),
             'db_errors': self.db_errors,
             'beacon_cache': dict(dot11.cache_stats),
             'wids': self.detector is not None,
@@ -391,7 +451,9 @@ class Engine(object):
                 r.open()
                 opened.append(r)
             except Exception as e:  # one bad radio must not stop the other
+                r.close()
                 r.error = str(e)
+                r.retry_at = time.time() + RADIO_RETRY
                 errors.append(str(e))
         if not opened:
             self.last_error = ' ; '.join(errors) or 'No radio configured'
@@ -400,22 +462,22 @@ class Engine(object):
             raise RuntimeError(self.last_error)
         self.last_error = ' ; '.join(errors) or None
 
-        by_fd = dict((r.sock.fileno(), r) for r in opened)
-        socks = [r.sock for r in opened]
         self.write_status()
         last_flush = time.time()
         last_retention = 0.0
         last_summary = 0.0
         try:
             while self.running:
+                live = [r for r in self.radios if r.sock is not None]
+                by_sock = dict((r.sock, r) for r in live)
                 try:
-                    ready, _, _ = select.select(socks, [], [], 1.0)
+                    ready, _, _ = select.select(list(by_sock), [], [], 1.0)
                 except (OSError, ValueError, select.error):
                     if not self.running:
                         break
                     raise
                 for s in ready:
-                    radio = by_fd[s.fileno()]
+                    radio = by_sock[s]
                     # Drain what is queued on this socket, bounded to stay fair
                     for _ in range(256):
                         try:
@@ -423,12 +485,17 @@ class Engine(object):
                         except (BlockingIOError, InterruptedError):
                             break
                         except OSError as e:
-                            radio.error = str(e)
+                            self._lose(radio, e, time.time())
                             break
                         radio.frames += 1
-                        self.handle(buf, time.time())
+                        ts = time.time()
+                        if self.within_budget(buf, ts):
+                            self.handle(buf, ts)
 
                 now = time.time()
+                for radio in self.radios:
+                    if radio.retry_at is not None and now >= radio.retry_at:
+                        self._retry(radio, now)
                 try:
                     if now - last_flush >= FLUSH_INTERVAL:
                         last_flush = now
@@ -451,7 +518,7 @@ class Engine(object):
                     if self.db_errors <= 3:
                         print('database error: %s' % e, file=sys.stderr)
         finally:
-            for r in opened:
+            for r in self.radios:
                 r.close()
             self.flush_window()
             self.running = False
@@ -533,7 +600,7 @@ def read_pcap(path):
 
 def load_settings(path):
     try:
-        with open(path) as fh:
+        with open(path, encoding='utf-8') as fh:
             return json.load(fh)
     except (IOError, ValueError):
         return {}
@@ -598,7 +665,7 @@ def main():
         return 2
 
     if args.pidfile:
-        with open(args.pidfile, 'w') as fh:
+        with open(args.pidfile, 'w', encoding='utf-8') as fh:
             fh.write(str(os.getpid()))
 
     signal.signal(signal.SIGTERM, engine.stop)

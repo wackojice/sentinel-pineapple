@@ -75,6 +75,9 @@ MAX_NEW_PER_FLUSH = 500        # new access points, clients, probes or deauth ke
 MAX_DB_BYTES = 64 * 1024 * 1024  # hard ceiling of the database file (SQLITE_FULL beyond)
 
 
+MAX_CONFIGS_PER_AP = 8   # distinct configurations kept per access point in one window
+
+
 def connect(path, readonly=False):
     if readonly:
         conn = sqlite3.connect('file:%s?mode=ro' % path, uri=True, timeout=5)
@@ -151,7 +154,18 @@ class Aggregator(object):
                                    'first': ts}
         if f.subtype == 8:
             a['beacons'] += 1
-            a['info'] = info  # beacons are authoritative
+            # Beacons are authoritative, but one forged beacon must not rewrite the access
+            # point's security: the window keeps the configuration announced most often.
+            votes = a.setdefault('votes', {})
+            key = (info.get('fingerprint'), info.get('security'), info.get('pmf'), bool(info.get('wps')))
+            v = votes.get(key)
+            if v is None:
+                if len(votes) < MAX_CONFIGS_PER_AP:
+                    votes[key] = [1, info]
+            else:
+                v[0] += 1
+                v[1] = info
+            a['info'] = max(votes.values(), key=lambda c: c[0])[1] if votes else info
         else:
             a['probe_resps'] += 1
             if info.get('ssid'):

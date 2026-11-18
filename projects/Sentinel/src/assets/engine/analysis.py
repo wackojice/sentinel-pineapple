@@ -211,6 +211,23 @@ def audit_ap(ap):
     return worst, findings
 
 
+# An access point seen only once in the hour is not audited (unless it is yours): a single
+# forged beacon must not change the neighbourhood's score.
+MIN_FRAMES_TO_AUDIT = 2
+
+
+def _conflicting(conn, since):
+    """BSSIDs that announced two or more configurations (fingerprint or security), each at
+    least twice, since `since`."""
+    out = set(r[0] for r in conn.execute(
+        'SELECT bssid FROM ap_fingerprints WHERE last_seen >= ? AND count >= 2 '
+        'GROUP BY bssid HAVING COUNT(*) >= 2', (since,)))
+    out.update(r[0] for r in conn.execute(
+        'SELECT bssid FROM ap_channels WHERE last_seen >= ? AND count >= 2 '
+        'GROUP BY bssid HAVING COUNT(DISTINCT security) >= 2', (since,)))
+    return out
+
+
 def _score(summary, total):
     healthy = summary['good'] + summary['low']
     return round(100.0 * healthy / total) if total else None
@@ -228,8 +245,17 @@ def security_audit(conn, max_age=3600, now=None, mine=None):
     my_summary = {k: 0 for k in SEVERITY_ORDER}
     pmf_counts = {'required': 0, 'capable': 0, 'none': 0}
     sec_counts = {}
+    since = (now or time.time()) - max_age
+    conflicting = _conflicting(conn, since)
     for ap in aps:
+        if ap['bssid'] not in mine and (ap.get('beacons') or 0) + (ap.get('probe_resps') or 0) < MIN_FRAMES_TO_AUDIT:
+            continue
         worst, findings = audit_ap(ap)
+        if ap['bssid'] in conflicting:
+            findings.append(_finding(
+                'conflicting', 'info', 'Two different configurations',
+                'This address announced two different configurations in this period. Usually a '
+                'settings change or a firmware update, but it can also be someone imitating it.'))
         summary[worst] += 1
         is_mine = ap['bssid'] in mine
         if is_mine:
@@ -272,7 +298,7 @@ def spectrum(conn, max_age=600, now=None, mine=None):
     for ap in list_aps(conn, max_age=max_age, now=now):
         if not ap.get('channel'):
             continue
-        grade, findings = audit_ap(ap)
+        grade, _ = audit_ap(ap)
         out.append({
             'bssid': ap['bssid'], 'ssid': ap['ssid'], 'hidden': bool(ap['hidden']),
             'channel': ap['channel'], 'band': ap['band'], 'rssi': ap['rssi_last'],

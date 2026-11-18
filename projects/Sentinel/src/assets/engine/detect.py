@@ -317,7 +317,7 @@ class Detector(object):
 
     def _deauth(self, agg, now):
         counts, reasons = {}, {}
-        for (minute, bssid, src, dst, subtype, reason), n in agg.disc.items():
+        for (_, bssid, _, _, _, reason), n in agg.disc.items():
             counts[bssid] = counts.get(bssid, 0) + n
             r = reasons.setdefault(bssid, {})
             r[str(reason)] = r.get(str(reason), 0) + n
@@ -359,4 +359,3 @@ class Detector(object):
                                     bssid=bssid, ts=ts)
         except Exception:
             self.errors += 1
-

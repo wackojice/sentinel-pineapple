@@ -93,7 +93,9 @@ After that, leave it running. Alerts show up in **Detection**, with a counter on
 - Device addresses and the names of networks people's phones are looking for are not saved unless you turn that on
   in Settings.
 - It uses about 40% of the Pineapple's CPU with both radios, around 12 MB of RAM, and the database never goes over
-  64 MB.
+  64 MB. If someone floods the air with frames, it handles at most 2,000 per second and skips the rest.
+- If a radio stops working (adapter unplugged, driver reset), the light turns orange and Sentinel tries to reopen it
+  every 30 seconds.
 - While it's running, Sentinel turns off `wlan3` (the MK7AC in normal mode) so the 5 GHz radio can change channel.
   Stopping, rebooting or uninstalling brings it back.
 - Don't run Recon on the same radio at the same time. If you need the Pineapple for something else, just stop

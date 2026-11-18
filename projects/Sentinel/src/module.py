@@ -87,7 +87,7 @@ def _sqlite_available():
     import importlib
     importlib.invalidate_caches()  # it may have been installed since the last try
     try:
-        import sqlite3  # noqa: F401
+        import sqlite3  # noqa: F401  pylint: disable=unused-import,import-outside-toplevel
         return True
     except ImportError:
         return False
@@ -99,7 +99,7 @@ def _sqlite_available():
 
 def _radio_state():
     try:
-        with open(RADIO_STATE_PATH) as fh:
+        with open(RADIO_STATE_PATH, encoding='utf-8') as fh:
             state = json.load(fh)
         if isinstance(state, dict):
             return {'created': [n for n in state.get('created', []) if isinstance(n, str)],
@@ -114,7 +114,7 @@ def _remember_radio(kind, name):
     if name not in state[kind]:
         state[kind].append(name)
         try:
-            with open(RADIO_STATE_PATH + '.tmp', 'w') as fh:
+            with open(RADIO_STATE_PATH + '.tmp', 'w', encoding='utf-8') as fh:
                 json.dump(state, fh)
             os.rename(RADIO_STATE_PATH + '.tmp', RADIO_STATE_PATH)
         except (IOError, OSError):
@@ -129,7 +129,7 @@ def _restore_radios():
         _run(['ip', 'link', 'set', name, 'up'])
     state['downed'] = []
     try:
-        with open(RADIO_STATE_PATH, 'w') as fh:
+        with open(RADIO_STATE_PATH, 'w', encoding='utf-8') as fh:
             json.dump(state, fh)
     except (IOError, OSError):
         pass
@@ -138,7 +138,7 @@ def _restore_radios():
 def _load_settings():
     settings = json.loads(json.dumps(DEFAULT_SETTINGS))  # deep copy
     try:
-        with open(SETTINGS_PATH) as fh:
+        with open(SETTINGS_PATH, encoding='utf-8') as fh:
             saved = json.load(fh)
     except (IOError, ValueError):
         saved = {}
@@ -168,7 +168,7 @@ def _ensure_data_dir():
 def _save_settings(settings):
     _ensure_data_dir()
     tmp = SETTINGS_PATH + '.tmp'
-    with open(tmp, 'w') as fh:
+    with open(tmp, 'w', encoding='utf-8') as fh:
         json.dump(settings, fh, indent=2)
     os.rename(tmp, SETTINGS_PATH)
 
@@ -177,7 +177,7 @@ def _run(args, timeout=10):
     """Run a command. Returns (exit code, output) and never raises."""
     try:
         done = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                              timeout=timeout)
+                              timeout=timeout, check=False)
         return done.returncode, done.stdout.decode('utf-8', 'replace')
     except (OSError, subprocess.SubprocessError) as e:
         return 1, str(e)
@@ -203,7 +203,7 @@ def _engine_pid():
         _engine_proc = None
     # An engine started by an earlier run of this backend keeps listening
     try:
-        with open(PID_PATH) as fh:
+        with open(PID_PATH, encoding='utf-8') as fh:
             pid = int(fh.read().strip())
         os.kill(pid, 0)
     except (IOError, ValueError, OSError):
@@ -213,7 +213,7 @@ def _engine_pid():
 
 def _forget_pid(pid):
     try:
-        with open(PID_PATH) as fh:
+        with open(PID_PATH, encoding='utf-8') as fh:
             if int(fh.read().strip()) == pid:
                 os.unlink(PID_PATH)
     except (IOError, ValueError, OSError):
@@ -260,16 +260,16 @@ def _wireless_interfaces():
         if not os.path.exists(phy_path):
             continue
         try:
-            with open(phy_path) as fh:
+            with open(phy_path, encoding='utf-8') as fh:
                 phy = fh.read().strip()
-            with open(os.path.join(base, name, 'type')) as fh:
+            with open(os.path.join(base, name, 'type'), encoding='utf-8') as fh:
                 link_type = int(fh.read().strip())
-            with open(os.path.join(base, name, 'operstate')) as fh:
+            with open(os.path.join(base, name, 'operstate'), encoding='utf-8') as fh:
                 state = fh.read().strip()
         except (IOError, ValueError):
             continue
         try:
-            with open(os.path.join(base, name, 'flags')) as fh:
+            with open(os.path.join(base, name, 'flags'), encoding='utf-8') as fh:
                 up = bool(int(fh.read().strip(), 16) & 0x1)  # IFF_UP
         except (IOError, ValueError):
             up = state == 'up'
@@ -288,7 +288,7 @@ def _phy_bands(phy):
     bands = []
     try:
         out = subprocess.run(['iw', 'phy', phy, 'info'], stdout=subprocess.PIPE,
-                             stderr=subprocess.DEVNULL, timeout=5).stdout.decode('utf-8', 'replace')
+                             stderr=subprocess.DEVNULL, timeout=5, check=False).stdout.decode('utf-8', 'replace')
     except (OSError, subprocess.SubprocessError):
         out = ''
     for line in out.splitlines():
@@ -308,7 +308,7 @@ def _phy_bands(phy):
 
 def _tail(path, lines=20):
     try:
-        with open(path) as fh:
+        with open(path, encoding='utf-8') as fh:
             return fh.read().splitlines()[-lines:]
     except IOError:
         return []
@@ -412,7 +412,7 @@ def _start_engine():
     _save_settings(settings)
     _radio_warnings = _prepare_radios(settings)
     try:
-        with open(LOG_PATH, 'a') as log:
+        with open(LOG_PATH, 'a', encoding='utf-8') as log:
             _engine_proc = subprocess.Popen(
                 ['python3', ENGINE, '--db', DB_PATH, '--settings', SETTINGS_PATH,
                  '--pidfile', PID_PATH],
@@ -423,7 +423,7 @@ def _start_engine():
     # The process exists from this instant, so record its PID now instead of waiting
     # for the engine to write it (4 to 6 s on the Mark VII). Until its first heartbeat
     # get_status reports "starting"; if it gives up, its reason is in the status.
-    with open(PID_PATH, 'w') as fh:
+    with open(PID_PATH, 'w', encoding='utf-8') as fh:
         fh.write(str(_engine_proc.pid))
     time.sleep(0.3)
     if _engine_pid() is None:
@@ -462,7 +462,7 @@ def on_start():
     if not os.path.exists(SETTINGS_PATH):
         _save_settings(DEFAULT_SETTINGS)
     if _load_settings().get('autostart') and _sqlite_available() and not _engine_pid():
-        ok, msg = _start_engine()
+        _, msg = _start_engine()
         module.logger.info('Autostart: %s' % msg)
 
 # The engine is intentionally NOT stopped when the module backend shuts down:

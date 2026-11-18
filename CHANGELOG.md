@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.8.0
+The last findings of the pre-release audit (P1), before a submission to Hak5.
+- **A radio that stops working is reopened.** If an adapter is unplugged or its driver resets, Sentinel closes it,
+  says so (the light turns orange: "Listening, with a radio problem") and tries again every 30 s. Before, it kept
+  showing "Listening" on a dead radio. The status has a new `healthy` flag. (3.4)
+- **A frame budget against floods.** Normal listening is about 150 frames/s. Above 800 per second only management
+  frames are decoded, above 2,000 the rest is skipped and counted (`frames_over_budget`). A flood costs reading the
+  socket, not decoding every frame. (4.1)
+- **One forged beacon no longer changes the audit.** Within each 5 s window, an access point keeps the configuration
+  it announced most often, not the last one. An access point seen only once in the period is not audited (yours
+  always are). An address that announces two different configurations gets a note: usually a settings change or an
+  update, sometimes someone imitating it. (6.1)
+- **Recon.** While Sentinel hops channels on `wlan1mon`, a note under the header says it is the radio Recon uses,
+  and to stop monitoring before a Recon scan. (3.2)
+- Code: explicit UTF-8 for every text file, unused names removed (pylint). Builds from a clean copy under Node 16,
+  like Hak5's check. Tests: 6 more (28 in `tools/test_detect.py`).
+
 ## 0.7.5
 - **A summary for dashboards.** While listening, the engine writes `/tmp/sentinel-summary.json` once a minute (about
   1 KB, readable by root only): listening state and radios, your networks (score, worst level, the ones not seen in

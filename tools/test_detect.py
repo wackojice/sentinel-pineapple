@@ -409,5 +409,126 @@ class SummaryTest(DetectBase):
         self.run_capture(cap)
         self.assertFalse(any(n.startswith('summary') for n in os.listdir(self.dir)))
 
+class AuditP1Test(DetectBase):
+    """Audit items 3.4, 4.1 and 6.1 (before the Hak5 submission)."""
+
+    def audit(self, mine=()):
+        import analysis
+        conn = sqlite3.connect(self.db)
+        conn.row_factory = sqlite3.Row
+        try:
+            return analysis.security_audit(conn, max_age=10 ** 9, now=T0 + 60, mine=set(mine))
+        finally:
+            conn.close()
+
+    def test_one_forged_beacon_does_not_rewrite_security(self):
+        cap = Capture()
+        cap.every(T0, T0 + 4.5, 0.5, lambda t: beacon(OTHER, 'Neighbour', 6, 'wpa2'))
+        cap.add(T0 + 4.8, beacon(OTHER, 'Neighbour', 6, 'open'))   # last frame of the window
+        self.run_capture(cap)
+        net = [n for n in self.audit()['networks'] if n['bssid'] == OTHER][0]
+        self.assertEqual(net['security'], 'WPA2-PSK')
+
+    def test_an_access_point_seen_once_is_not_audited_unless_yours(self):
+        cap = Capture()
+        cap.add(T0, beacon(OTHER, 'Passing-by', 6, 'open'))
+        cap.add(T0 + 0.1, beacon(HOME, 'Home', 6, 'transition'))
+        self.run_capture(cap)
+        bssids = [n['bssid'] for n in self.audit(mine=[HOME])['networks']]
+        self.assertEqual(bssids, [HOME])
+
+    def test_contradictory_announcements_are_flagged(self):
+        cap = Capture()
+        cap.every(T0, T0 + 20, 0.5, lambda t: beacon(OTHER, 'Neighbour', 6, 'wpa2' if t < T0 + 10 else 'wpa3'))
+        self.run_capture(cap)
+        net = [n for n in self.audit()['networks'] if n['bssid'] == OTHER][0]
+        self.assertIn('conflicting', [f['code'] for f in net['findings']])
+        self.assertNotEqual(net['grade'], 'info')   # an info finding never sets the grade
+
+    def test_frame_budget(self):
+        e = engine.Engine(self.db, local_bssids=set())
+        mgmt_frame = beacon(OTHER, 'Flood', 6, 'open')
+        data_frame = radiotap(2437, -50) + struct.pack('<HH', 0x0008, 0) + b'\x00' * 22
+        passed = [e.within_budget(data_frame, T0) for _ in range(engine.FRAME_BUDGET_SOFT)]
+        self.assertTrue(all(passed))
+        self.assertFalse(e.within_budget(data_frame, T0))       # over the soft limit: data dropped
+        self.assertTrue(e.within_budget(mgmt_frame, T0))        # management still goes through
+        for _ in range(engine.FRAME_BUDGET_HARD):
+            e.within_budget(mgmt_frame, T0)
+        self.assertFalse(e.within_budget(mgmt_frame, T0))       # over the hard limit: nothing
+        self.assertTrue(e.within_budget(data_frame, T0 + 1))    # a new second, a new budget
+        self.assertGreater(e.frames_over_budget, 0)
+        self.assertFalse(e.within_budget(b'\x00', T0 + 1) and False)  # never raises on short frames
+        e.conn.close()
+
+    def test_healthy_flag(self):
+        radio = engine.Radio('wlanXmon', [1], False, 0.1)
+        e = engine.Engine(self.db, radios=[radio], local_bssids=set())
+        e.running = True
+        e.write_status()
+        self.assertTrue(e.last_status['healthy'])
+        radio.error = 'wlanXmon stopped working'
+        e.write_status()
+        self.assertFalse(e.last_status['healthy'])
+        e.conn.close()
+
+    def test_lost_radio_is_reopened(self):
+        import socket
+        import threading
+        import time as _time
+
+        class BrokenSocket(socket.socket):
+            def recv(self, *args):
+                raise OSError(100, 'Network is down')
+
+        class FakeRadio(engine.Radio):
+            broken = True
+            opens = 0
+
+            def open(self):
+                FakeRadio.opens += 1
+                a, b = socket.socketpair(socket.AF_UNIX, socket.SOCK_DGRAM)
+                self._peer = b
+                if FakeRadio.broken:
+                    self.sock = BrokenSocket(a.family, a.type, fileno=a.detach())
+                    b.send(b'x')                    # readable, so recv() is called and fails
+                else:
+                    a.setblocking(False)
+                    self.sock = a
+
+        radio = FakeRadio('wlanXmon', [1], False, 0.1)
+        holder = {}
+
+        def run():   # SQLite connections belong to the thread that opens them
+            holder['engine'] = engine.Engine(self.db, radios=[radio], local_bssids=set())
+            holder['engine'].run_live()
+            holder['engine'].conn.close()
+
+        old = engine.RADIO_RETRY
+        engine.RADIO_RETRY = 0.3
+        t = threading.Thread(target=run)
+        t.start()
+        try:
+            while 'engine' not in holder:
+                _time.sleep(0.01)
+            e = holder['engine']
+            deadline = _time.time() + 5
+            while 'stopped working' not in (radio.error or '') and _time.time() < deadline:
+                _time.sleep(0.05)
+            self.assertIn('stopped working', radio.error or '')
+            self.assertFalse(e.running and not radio.error)   # not healthy while in error
+            FakeRadio.broken = False                     # the adapter is back
+            deadline = _time.time() + 5
+            while radio.error and _time.time() < deadline:
+                _time.sleep(0.05)
+            self.assertIsNone(radio.error)
+            self.assertGreaterEqual(FakeRadio.opens, 2)
+            self.assertTrue(e.running)
+        finally:
+            if 'engine' in holder:
+                holder['engine'].running = False
+            t.join(5)
+            engine.RADIO_RETRY = old
+
 if __name__ == '__main__':
     unittest.main(verbosity=1)

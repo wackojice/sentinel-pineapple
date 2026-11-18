@@ -61,7 +61,7 @@ def _clean_entry(e):
 def load(path):
     """{bssid: entry}; {} when the file is absent, unreadable or malformed."""
     try:
-        with open(path) as fh:
+        with open(path, encoding='utf-8') as fh:
             data = json.load(fh)
     except (IOError, OSError, ValueError):
         return {}
@@ -82,7 +82,7 @@ def save(path, entries):
         os.makedirs(folder, mode=0o700, exist_ok=True)
     networks = sorted(entries.values(), key=lambda e: (e.get('ssid') or '', e['bssid']))
     tmp = path + '.tmp'
-    with open(tmp, 'w') as fh:
+    with open(tmp, 'w', encoding='utf-8') as fh:
         json.dump({'version': 1, 'networks': networks[:MAX_NETWORKS]}, fh, indent=2)
     os.rename(tmp, path)
 
