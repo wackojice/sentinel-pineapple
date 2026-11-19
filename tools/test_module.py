@@ -520,6 +520,26 @@ class DetectionActionsTest(ModuleTestCase):
         self.call('ack_events')
         self.assertEqual(self.call('get_detection')['unacknowledged'], 0)
 
+    def test_mute_an_alert_type(self):
+        self.assertEqual(self.call('get_detection')['muted'], [])
+        reply = self.call('set_alert_muted', kind='deauth_flood', muted=True)
+        self.assertEqual(reply, {'muted': ['deauth_flood']})
+        d = self.call('get_detection')
+        self.assertEqual(d['muted'], ['deauth_flood'])
+        self.assertEqual(d['by_severity'], {'critical': 1})          # its unread alerts are read now
+        self.assertEqual(len(d['events']), 4)                         # but still in the history
+        self.assertEqual(os.stat(os.path.join(m.DATA_DIR, 'muted_alerts.json')).st_mode & 0o777, 0o600)
+        self.assertEqual(self.call('set_alert_muted', kind='deauth_flood', muted=False), {'muted': []})
+
+    def test_mute_validates_its_parameters(self):
+        for kind in ('suppressed', 'nope', None, 5, '../x'):
+            self.assertEqual(self.call('set_alert_muted', kind=kind, muted=True)[1], False)
+        for value in ('true', 1, None):
+            self.assertEqual(self.call('set_alert_muted', kind='evil_twin', muted=value)[1], False)
+        with open(os.path.join(m.DATA_DIR, 'muted_alerts.json'), 'w') as fh:
+            fh.write('{damaged')
+        self.assertEqual(self.call('get_detection')['muted'], [])     # a damaged file mutes nothing
+
     def test_dashboard_shows_only_detector_events(self):
         events = self.call('get_dashboard')['events']
         self.assertEqual(set(e['source'] for e in events), {'wids'})

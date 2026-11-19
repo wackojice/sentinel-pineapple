@@ -70,7 +70,9 @@ propres réseaux, et la détection sait quoi surveiller.
 
 ![Onglet Security](docs/screenshots/3-security.png)
 
-Après ça, laisse-le tourner. Les alertes s'affichent dans **Detection**, avec un compteur sur l'onglet.
+Après ça, laisse-le tourner. Les alertes s'affichent dans **Detection**, avec un compteur sur l'onglet. Si un type
+d'alerte n'est que du bruit pour toi (par exemple ton routeur qui change de canal), ouvre-en une et clique sur
+**Mute** : ces alertes sont encore enregistrées, mais elles ne comptent plus comme non lues.
 
 ## Bon à savoir
 

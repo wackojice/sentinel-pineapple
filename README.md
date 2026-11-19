@@ -83,7 +83,9 @@ and the detection knows what to watch.
 
 ![Security tab](docs/screenshots/3-security.png)
 
-After that, leave it running. Alerts show up in **Detection**, with a counter on the tab.
+After that, leave it running. Alerts show up in **Detection**, with a counter on the tab. If a type of alert is just
+noise for you (say, your router changing channel), open one and click **Mute**: those alerts are still recorded, but
+they no longer count as unread.
 
 <details>
 <summary>Channels tab</summary>

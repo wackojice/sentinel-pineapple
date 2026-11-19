@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.3
+- **Mute a type of alert.** In Detection, open an alert and click **Mute** (for example "Channel change", when your
+  own router moves channel on its own). Muted alerts are still recorded and shown, marked "(muted)", but they are
+  written as already read: no more unread counter, tab badge or dashboard alert for them. Muting also marks that
+  type's unread alerts as read. The list of muted types is at the top of the tab, with an **Unmute** button. Kept in
+  `/root/.Sentinel/muted_alerts.json`.
+- Tests: 4 more (`set_alert_muted` checks its parameters; a damaged file mutes nothing).
+
 ## 0.8.2
 - The Recon warning on the main page has an **X** to close it. It stays hidden in that browser (it shows again in
   another browser, or if the browser's site data is cleared).

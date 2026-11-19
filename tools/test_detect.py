@@ -365,6 +365,29 @@ class DetectTest(DetectBase):
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             self.assertEqual(len(self.events()), expected, 'wids_enabled=%s' % enabled)
 
+class MutedTest(DetectBase):
+    """A muted alert type is recorded, but already marked as read."""
+
+    def test_muted_kind_is_recorded_as_read(self):
+        import muted
+        self.mark(ch=6)
+        muted.save(os.path.join(self.dir, muted.FILENAME), ['my_ap_channel'])
+        cap = Capture()
+        cap.every(T0, T0 + 30, 0.5, lambda t: beacon(HOME, 'Home', 6 if t < T0 + 10 else 11))
+        events = [e for e in self.run_capture(cap) if e['kind'] == 'my_ap_channel']
+        self.assertTrue(events)
+        self.assertTrue(all(e['acknowledged'] == 1 for e in events))
+
+    def test_other_kinds_stay_unread(self):
+        import muted
+        self.mark()
+        muted.save(os.path.join(self.dir, muted.FILENAME), ['my_ap_channel'])
+        cap = Capture()
+        self.home(cap)
+        cap.every(T0 + 10, T0 + 13, 0.5, lambda t: beacon(TWIN, 'Home', 11, 'open'))
+        events = [e for e in self.run_capture(cap) if e['kind'] == 'evil_twin']
+        self.assertEqual([e['acknowledged'] for e in events], [0])
+
 class SummaryTest(DetectBase):
     """Roadmap: the small file a dashboard reads every minute."""
 
