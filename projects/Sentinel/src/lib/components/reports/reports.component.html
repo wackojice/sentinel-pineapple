@@ -9,6 +9,9 @@
             <button mat-stroked-button [disabled]="!data || data.empty" (click)="print()">
                 <mat-icon>print</mat-icon> Print or PDF
             </button>
+            <button mat-stroked-button [disabled]="!data || data.empty" (click)="downloadHtml()">
+                <mat-icon>web</mat-icon> HTML
+            </button>
             <button mat-stroked-button [disabled]="!data || data.empty" (click)="downloadCsv()">
                 <mat-icon>table_chart</mat-icon> CSV
             </button>

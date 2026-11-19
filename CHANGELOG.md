@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.8.6
+- **A designed HTML report.** The new **HTML** button downloads the report as one self-contained page (no external
+  font, script or image: it opens anywhere, offline): a dark header with gauges for your networks and the
+  neighbourhood, key figures, a day-by-day chart (both scores and the alerts of each day), what to change as a
+  numbered list, your networks with PMF and WPS flags, alerts by type, and a strip of channels with the best one and
+  yours highlighted. Severity is always written out, never shown by colour alone. It reads well on a phone too.
+- **Print or PDF** now prints that same page instead of the plain black and white one.
+- Network names and alert titles are escaped in the page: a name like `<img onerror=...>` shows up as text.
+
 ## 0.8.5
 - **Reports: CSV and Markdown.** Next to **Print or PDF**, two buttons download the report:
   - **CSV**: one table with a `section` column (summary, trend, to_change, my_network, alert, channel...) to filter
