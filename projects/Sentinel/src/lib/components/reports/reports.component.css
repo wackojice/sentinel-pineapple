@@ -9,6 +9,12 @@
     flex: 1 1 auto;
 }
 
+.exports {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
 .toolbar button mat-icon {
     margin-right: 4px;
 }

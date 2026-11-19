@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.8.5
+- **Reports: CSV and Markdown.** Next to **Print or PDF**, two buttons download the report:
+  - **CSV**: one table with a `section` column (summary, trend, to_change, my_network, alert, channel...) to filter
+    on in a spreadsheet;
+  - **Markdown**: the same report as text, for notes or a ticket.
+- Network names come from anyone in radio range, so the exports treat them as untrusted: in the CSV, a cell that
+  starts with `=`, `+`, `-` or `@` gets a leading quote so a spreadsheet never runs it as a formula; in the Markdown,
+  table separators, formatting, links and HTML are escaped.
+
 ## 0.8.4
 - **The Reports tab.** A summary of the last 24 hours, 7 days or 30 days (7 by default):
   - your networks' score and the neighbourhood's, with a trend, one point per day;

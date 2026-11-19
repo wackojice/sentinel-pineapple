@@ -5,9 +5,17 @@
         </mat-button-toggle-group>
         <span class="soft" *ngIf="data?.generated_at">Made {{ data.generated_at * 1000 | date:'MMM d, HH:mm' }}, Pineapple's clock</span>
         <span class="spacer"></span>
-        <button mat-stroked-button [disabled]="!data || data.empty" (click)="print()">
-            <mat-icon>print</mat-icon> Print or save as PDF
-        </button>
+        <div class="exports">
+            <button mat-stroked-button [disabled]="!data || data.empty" (click)="print()">
+                <mat-icon>print</mat-icon> Print or PDF
+            </button>
+            <button mat-stroked-button [disabled]="!data || data.empty" (click)="downloadCsv()">
+                <mat-icon>table_chart</mat-icon> CSV
+            </button>
+            <button mat-stroked-button [disabled]="!data || data.empty" (click)="downloadMarkdown()">
+                <mat-icon>description</mat-icon> Markdown
+            </button>
+        </div>
     </div>
 
     <mat-card class="card empty" *ngIf="data?.empty">

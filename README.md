@@ -88,8 +88,9 @@ noise for you (say, your router changing channel), open one and click **Mute**: 
 they no longer count as unread.
 
 **Reports** sums up the last 24 hours, 7 days or 30 days: your networks' score and how it changed day by day, what
-to change on your router (turn on PMF, turn off WPS...), the alerts and the best channels. The **Print or save as
-PDF** button opens a plain black and white version you can print or keep.
+to change on your router (turn on PMF, turn off WPS...), the alerts and the best channels. You can take it out three ways:
+**Print or PDF** (a plain black and white page), **CSV** (one table with a `section` column, for a spreadsheet) or
+**Markdown** (for notes or a ticket).
 
 <details>
 <summary>Reports tab</summary>

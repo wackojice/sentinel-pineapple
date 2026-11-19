@@ -76,7 +76,9 @@ d'alerte n'est que du bruit pour toi (par exemple ton routeur qui change de cana
 
 L'onglet **Reports** fait le bilan des dernières 24 heures, 7 jours ou 30 jours : le score de tes réseaux et son
 évolution jour par jour, ce qu'il faut changer dans ton routeur (activer le PMF, couper le WPS…), les alertes et les
-meilleurs canaux. Le bouton **Print or save as PDF** ouvre une version noir et blanc à imprimer ou à garder en PDF.
+meilleurs canaux. Tu peux le sortir de trois façons : **Print or PDF** (une page
+noir et blanc), **CSV** (un seul tableau avec une colonne `section`, pour un tableur) ou **Markdown** (pour des notes
+ou un ticket).
 
 ## Bon à savoir
 
