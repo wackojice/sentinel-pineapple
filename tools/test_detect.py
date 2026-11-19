@@ -388,6 +388,33 @@ class MutedTest(DetectBase):
         events = [e for e in self.run_capture(cap) if e['kind'] == 'evil_twin']
         self.assertEqual([e['acknowledged'] for e in events], [0])
 
+class ReportTest(DetectBase):
+    """The Reports tab: one row per day, advice for your networks."""
+
+    def test_report_after_an_imitation(self):
+        import report
+        import store
+        self.mark(sec='wpa2')
+        cap = Capture()
+        self.home(cap, sec='wpa2')
+        cap.every(T0 + 10, T0 + 13, 0.5, lambda t: beacon(TWIN, 'Home', 11, 'open'))
+        self.run_capture(cap)
+        conn = store.connect(self.db)
+        report.record_day(conn, self.mine_path, now=T0 + 60)
+        report.record_day(conn, self.mine_path, now=T0 + 120)          # same day: replaced
+        report.record_day(conn, self.mine_path, now=T0 + 86400 + 60)   # next day: a new row
+        r = report.build(conn, self.mine_path, days=7, now=T0 + 600)
+        conn.close()
+        self.assertEqual(r['mine']['marked'], 1)
+        self.assertEqual(r['mine']['networks'][0]['ssid'], 'Home')
+        codes = [f['code'] for f in r['mine']['networks'][0]['findings']]
+        self.assertIn('psk_offline', codes)
+        self.assertTrue(all(t['advice'] for t in r['mine']['todo']))
+        self.assertEqual(r['alerts']['by_kind'].get('evil_twin'), 1)
+        self.assertEqual(r['alerts']['top'][0]['severity'], 'critical')
+        self.assertEqual(len(r['trend']), 1)                            # the next-day row is in the future
+        self.assertEqual(r['trend'][0]['alerts'], 1)
+
 class SummaryTest(DetectBase):
     """Roadmap: the small file a dashboard reads every minute."""
 

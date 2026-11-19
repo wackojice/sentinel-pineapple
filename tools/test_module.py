@@ -540,6 +540,18 @@ class DetectionActionsTest(ModuleTestCase):
             fh.write('{damaged')
         self.assertEqual(self.call('get_detection')['muted'], [])     # a damaged file mutes nothing
 
+    def test_get_report_checks_the_period(self):
+        for days in (0, 2, -1, '7', None, True, 10 ** 9):
+            self.assertEqual(self.call('get_report', days=days)[1], False)
+        r = self.call('get_report', days=7)
+        self.assertEqual(r['days'], 7)
+        self.assertEqual(r['alerts']['total'], 4)
+        self.assertEqual(r['trend'], [])
+
+    def test_get_report_without_a_database(self):
+        os.remove(m.DB_PATH)
+        self.assertEqual(self.call('get_report', days=1), {'empty': True, 'days': 1})
+
     def test_dashboard_shows_only_detector_events(self):
         events = self.call('get_dashboard')['events']
         self.assertEqual(set(e['source'] for e in events), {'wids'})

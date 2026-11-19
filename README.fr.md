@@ -74,6 +74,10 @@ Après ça, laisse-le tourner. Les alertes s'affichent dans **Detection**, avec 
 d'alerte n'est que du bruit pour toi (par exemple ton routeur qui change de canal), ouvre-en une et clique sur
 **Mute** : ces alertes sont encore enregistrées, mais elles ne comptent plus comme non lues.
 
+L'onglet **Reports** fait le bilan des dernières 24 heures, 7 jours ou 30 jours : le score de tes réseaux et son
+évolution jour par jour, ce qu'il faut changer dans ton routeur (activer le PMF, couper le WPS…), les alertes et les
+meilleurs canaux. Le bouton **Print or save as PDF** ouvre une version noir et blanc à imprimer ou à garder en PDF.
+
 ## Bon à savoir
 
 - Les adresses des appareils et les noms de réseaux que cherchent les téléphones ne sont pas enregistrés, sauf si tu

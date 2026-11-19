@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.8.4
+- **The Reports tab.** A summary of the last 24 hours, 7 days or 30 days (7 by default):
+  - your networks' score and the neighbourhood's, with a trend, one point per day;
+  - **what to change** on your router, once per problem and the most serious first (turn on PMF, turn off WPS,
+    replace WEP...), with the networks it applies to;
+  - your networks one by one (band, channel, security, PMF, WPS, level), and the ones not seen in the period;
+  - the alerts by type, and the most serious ones;
+  - the best channel now in each band, next to yours.
+- **Print or save as PDF** opens the report on its own page, in plain black and white, and calls the browser's print.
+- The engine keeps one row per day (`daily` table, about 100 bytes, kept 400 days), updated every hour while
+  listening. The trend shows up after two days of listening.
+- Tests: 4 more (`get_report` checks its period; a row from the future is left out of the trend).
+
 ## 0.8.3
 - **Mute a type of alert.** In Detection, open an alert and click **Mute** (for example "Channel change", when your
   own router moves channel on its own). Muted alerts are still recorded and shown, marked "(muted)", but they are

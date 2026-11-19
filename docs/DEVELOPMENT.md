@@ -70,6 +70,11 @@ Web UI (Angular)  ⇄  module.py (Hak5 backend)  ⇄  SQLite  ⇐  engine.py (ca
 - **`assets/engine/store.py`**: SQLite schema, in-memory aggregation and the `events` table, the alert bus shared by every tab.
 - **`assets/engine/analysis.py`**: read-side computations: channel report, security audit (with a separate score for your networks), spectrum and overview.
 - **`assets/engine/nl80211.py`**: changes a monitor interface's channel through nl80211 directly (the message `iw dev … set channel` sends), so no process is started at each hop; the hopper falls back to `iw` if the device does not take it. Its `send` calls go to the local kernel over a netlink socket; nothing is transmitted over the air, and the capture socket is only read. Passivity check: `grep -rn "send" projects/Sentinel/src/` must only show those two lines.
+- **`assets/engine/report.py`**: the Reports tab. Every hour while listening, the engine writes today's row in the
+  `daily` table (scores, alerts, deauthentication frames; kept 400 days), which gives the trend. `build` puts the
+  report together for 1, 7 or 30 days, with advice for each audit finding on your networks (`ADVICE`).
+- **`assets/engine/muted.py`**: the alert types muted in the Detection tab (`muted_alerts.json`). The detector writes
+  their alerts as already read.
 - **`assets/engine/summary.py`**: once a minute while listening, and once when it stops, the engine writes
   `/tmp/sentinel-summary.json` (about 1 KB, root only): listening state and radios, your networks (marked, seen in the
   last hour, score, worst level, the ones not seen), unread alerts by severity and the last five, deauthentication

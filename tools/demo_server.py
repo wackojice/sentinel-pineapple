@@ -137,6 +137,19 @@ def prepare(tmp):
     build_capture(pcap, now - 600, now, attacks=True)
     subprocess.run([sys.executable, m.ENGINE, '--pcap', pcap, '--db', m.DB_PATH], check=True,
                    stdout=subprocess.DEVNULL)
+    # Two weeks of made-up daily rows for the Reports tab's trend, then today's real one
+    import report
+    conn = store.connect(m.DB_PATH)
+    with conn:
+        for i, (mine, area, alerts) in enumerate([(50, 31, 3), (50, 30, 1), (55, 29, 0), (55, 30, 2), (60, 28, 0),
+                                                  (60, 29, 1), (75, 30, 0), (75, 29, 4), (90, 30, 0), (90, 31, 1),
+                                                  (100, 29, 0), (100, 30, 0), (100, 28, 2)]):
+            ts = now - (13 - i) * 86400
+            conn.execute('INSERT OR REPLACE INTO daily VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                         (time.strftime('%Y-%m-%d', time.localtime(ts)), ts, mine, 2, 2, 'low',
+                          area, 14, alerts, 1 if alerts > 2 else 0, alerts * 12))
+    report.record_day(conn, m._mynets_path(), now)
+    conn.close()
     settings = json.loads(json.dumps(m.DEFAULT_SETTINGS))
     settings['radios'] = [
         {'iface': 'wlan1mon', 'enabled': True, 'hopping': True, 'channels': [1, 6, 11, 2, 7, 3, 8, 4, 9, 5, 10]},
