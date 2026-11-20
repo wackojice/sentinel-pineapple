@@ -80,6 +80,18 @@ meilleurs canaux. Tu peux le sortir de quatre façons : **HTML** (une page soign
 qui s'ouvre partout, même sans Internet), **Print or PDF** (la même page, imprimée), **CSV** (un seul tableau avec une
 colonne `section`, pour un tableur) ou **Markdown** (pour des notes ou un ticket).
 
+## Les alertes sur ton cell
+
+L'onglet **Notifications** envoie les alertes sur ton téléphone avec [ntfy](https://ntfy.sh) : installe l'application
+gratuite ntfy, choisis un sujet (le bouton **Random** en crée un difficile à deviner) et quelles alertes envoyer (élevées
+et critiques par défaut ; jamais les types en sourdine). Il y a un maximum par heure et un bouton **Save and send a
+test**. Il peut aussi te prévenir quand une radio arrête de fonctionner ou que l'écoute s'arrête.
+
+Le Pineapple doit pouvoir joindre le serveur ntfy : connecte-le à ton Wi-Fi en mode client sur **wlan2**, pas avec le
+MK7AC (Sentinel en a besoin pour le 5 GHz). Ton propre serveur ntfy sur le réseau local fonctionne aussi, sans Internet.
+Les messages contiennent les noms de tes réseaux et les adresses de tes bornes : ils sortent de la maison, sauf si le
+serveur est à toi.
+
 ## Bon à savoir
 
 - Les adresses des appareils et les noms de réseaux que cherchent les téléphones ne sont pas enregistrés, sauf si tu

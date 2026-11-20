@@ -37,8 +37,8 @@ project has no licence.
   false alarms whenever a threshold changes.
 
 ## Later
-- The tabs announced as coming: notifications (Pineapple notifications first, then ntfy or a webhook), drone
-  Remote ID (passive), reports.
+- The last tab announced as coming: drone Remote ID (passive). Reports came in 0.8.4, notifications through ntfy in
+  0.9.0; other services (Discord, Telegram, a generic webhook) only if people ask.
 - Channel width from the HT/VHT/HE elements, and occupancy from the BSS Load element.
 - A "Tetra edition" for the 6th-generation Pineapple (NANO/TETRA), if Python 3 is available there. The capture
   engine is reused, and only the interface is rewritten for that module system.

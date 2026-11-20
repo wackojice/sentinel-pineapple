@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.9.0
+- **The Notifications tab: alerts on your phone through ntfy** (ntfy.sh or your own server).
+  - Choose the server, a topic (a **Random** button makes one that is hard to guess), an optional access token, the
+    minimum severity (high and critical by default) and a cap per hour. Muted alert types are never sent.
+  - Beyond the cap, one message says how many alerts were held back.
+  - Optional status messages: a radio stopped working or came back, listening stopped.
+  - **Save and send a test** checks the settings right away.
+  - Off by default. Nothing older than the moment you turn it on is sent.
+- **How it runs.** A separate thread of the engine, with its own database connection, looks for new alerts every
+  10 seconds. It never blocks listening; a message that fails is tried again on the next pass, and the last error
+  shows in the tab. HTTPS goes through Python's ssl module, or through curl when the firmware has no ssl.
+- **Privacy and safety.** The settings file is readable by root only. The access token is never sent back to the
+  interface, written to a log, a report or the dashboard summary. Messages are plain text (no Markdown), control
+  characters are removed and the length is capped, since network names come from anyone in radio range. The tab says
+  that messages hold your network names and leave the house unless the server is yours, and that the Pineapple should
+  reach it through client mode on wlan2, not the MK7AC.
+- Tests: `tools/test_notify.py` (11, against a stand-in ntfy server) and 2 more in `tools/test_module.py`.
+
 ## 0.8.6
 - **A designed HTML report.** The new **HTML** button downloads the report as one self-contained page (no external
   font, script or image: it opens anywhere, offline): a dark header with gauges for your networks and the

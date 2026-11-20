@@ -552,6 +552,20 @@ class DetectionActionsTest(ModuleTestCase):
         os.remove(m.DB_PATH)
         self.assertEqual(self.call('get_report', days=1), {'empty': True, 'days': 1})
 
+    def test_notify_actions_never_show_the_token(self):
+        self.assertFalse(self.call('get_notify')['enabled'])
+        settings = {'enabled': True, 'server': 'http://127.0.0.1:1', 'topic': 'sentinel-ab12',
+                    'min_severity': 'high', 'max_per_hour': 10, 'status_messages': True, 'token': 'tk_secret'}
+        reply = self.call('save_notify', settings=settings)
+        self.assertTrue(reply['has_token'])
+        self.assertNotIn('tk_secret', json.dumps(reply))
+        self.assertNotIn('tk_secret', json.dumps(self.call('get_notify')))
+        self.assertEqual(self.call('save_notify', settings=dict(settings, topic='a b'))[1], False)
+        self.assertEqual(self.call('save_notify', settings=None)[1], False)
+        error = self.call('test_notify')                          # nothing listens on port 1
+        self.assertEqual(error[1], False)
+        self.assertIn('Could not reach', error[0])
+
     def test_dashboard_shows_only_detector_events(self):
         events = self.call('get_dashboard')['events']
         self.assertEqual(set(e['source'] for e in events), {'wids'})

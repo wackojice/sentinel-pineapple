@@ -106,6 +106,17 @@ with a `section` column, for a spreadsheet) or **Markdown** (for notes or a tick
 ![Channels tab](docs/screenshots/2-channels.png)
 </details>
 
+## Alerts on your phone
+
+The **Notifications** tab sends alerts to your phone through [ntfy](https://ntfy.sh): install the free ntfy app,
+pick a topic (the **Random** button makes one that's hard to guess), and choose which alerts go out (high and critical
+by default; muted types never). There's a cap per hour, and a **Save and send a test** button. You can also be told
+when a radio stops working or listening stops.
+
+The Pineapple needs a way to reach the ntfy server: connect it to your Wi-Fi with client mode on **wlan2**, not with
+the MK7AC (Sentinel needs it for 5 GHz). Your own ntfy server on the local network works too, without Internet.
+Messages hold your network names and access point addresses, so they leave the house unless the server is yours.
+
 ## Good to know
 
 - Device addresses and the names of networks people's phones are looking for are not saved unless you turn that on
