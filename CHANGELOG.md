@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.9.2
+- **Attempts to collect the key of your network (PMKID), in observation mode.** A device asks to join one of your
+  access points, gets the first message of the handshake (which carries the PMKID), never answers, and tries again:
+  that is how tools like hcxdumptool collect what they need to crack a WPA2 password offline. Sentinel now follows
+  the handshakes of your own access points and records these attempts, **without alerting yet**: they are kept apart
+  (source `observe`) so false positives can be measured on real networks before the rule is turned on.
+  - Built against false alerts. An abandoned handshake only counts when the device's own association request was
+    heard (so its answer would have been heard too), no answer came, and Sentinel heard other frames on that channel
+    0.3 to 1 s later (proof it was still listening). Three are needed within two minutes, on one of your access
+    points only. A wrong password, a far-away device, a channel change at the wrong time, a power cut where
+    everything reconnects, group key renewals and the networks of your neighbours give nothing.
+  - Device addresses are only kept in memory, a few seconds; the record has no device address.
+- **A deauthentication burst followed by reconnections.** The existing alert on your access points now says how
+  many devices reconnected right after it: that is how a handshake is captured. No new alert, so no new false
+  positives; earlier joins are never counted.
+- What cannot be seen: someone who only listens and waits for one of your devices to connect.
+- The dashboard summary has `observed_7d`, what the rules in observation would have reported over 7 days.
+- Tests: a bench of 13 cases in `tools/test_detect.py` (8 normal situations that must give nothing, 5 attacks).
+
 ## 0.9.1
 - **Notifications tested end to end on a real Mark VII** (firmware 2.1.3): the test button and the engine's own
   messages reached the ntfy app on a phone, over HTTPS to ntfy.sh, with the Pineapple in client mode on `wlan2`.

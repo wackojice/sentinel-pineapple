@@ -29,11 +29,16 @@ about other people's devices either.
 | Deauthentication burst | 10 deauth frames in 5 seconds, or 30 in a minute, on the same access point. |
 | Forged access points | Dozens of access points nobody has seen before, all at once. |
 | Answers for any network | One access point announces 5 different names within a minute. |
+| Key collection attempt *(observation only for now)* | Someone keeps starting to join your access point and stops right after getting the key material (PMKID), to crack your password offline. |
 
 ![Detection tab](docs/screenshots/5-detection.png)
 
+When a deauthentication burst hits your access point, the alert also says how many devices reconnected right after:
+that is how a handshake gets captured.
+
 One thing to keep in mind: the radios hop from channel to channel, so each channel is only listened to part of the
-time. A very short attack can slip through. Sentinel tells you what it sees, it doesn't block anything.
+time. A very short attack can slip through, and someone who only listens can't be seen at all. Sentinel tells you what it
+sees, it doesn't block anything.
 
 ## What you need
 

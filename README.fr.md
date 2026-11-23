@@ -29,11 +29,16 @@ appareils des autres non plus.
 | Rafale de désauthentifications | 10 trames en 5 secondes, ou 30 en une minute, sur la même borne. |
 | Faux points d'accès | Des dizaines de bornes jamais vues, toutes en même temps. |
 | Répond à tous les noms | Une borne annonce 5 noms différents en une minute. |
+| Tentative de vol de la clé *(en observation pour l'instant)* | Quelqu'un commence à se connecter à ta borne et s'arrête dès qu'il reçoit le matériel de clé (PMKID), pour casser ton mot de passe hors ligne. |
 
 ![Onglet Detection](docs/screenshots/5-detection.png)
 
+Quand une rafale de désauthentifications frappe ta borne, l'alerte dit aussi combien d'appareils se sont reconnectés
+juste après : c'est comme ça qu'on capture un handshake.
+
 À garder en tête : les radios sautent d'un canal à l'autre, donc chaque canal n'est écouté qu'une partie du temps.
-Une attaque très courte peut passer. Sentinel te dit ce qu'il voit, il ne bloque rien.
+Une attaque très courte peut passer, et quelqu'un qui ne fait qu'écouter est invisible. Sentinel te dit ce qu'il
+voit, il ne bloque rien.
 
 ## Ce qu'il te faut
 

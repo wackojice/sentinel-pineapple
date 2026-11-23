@@ -25,16 +25,12 @@ recommended: nearby network names and addresses should not leave the home.
 These ideas come from another open project, [blue-team-wifi-wids](https://github.com/SinLoops333/blue-team-wifi-wids)
 (a PC-side WIDS that uses the Pineapple as a remote sensor). Only the ideas are reused, not the code: that
 project has no licence.
-- **PMKID and handshake harvesting.** EAPOL frames (data frames, LLC/SNAP type `0x888e`) that carry an RSN PMKID,
-  or that come right after a deauthentication burst on the same access point, are the signs of someone collecting
-  material to crack a Wi-Fi password offline. To respect the privacy defaults, the rule only counts frames per
-  access point and stores no device address.
-- **Beacon clone by timestamp (TSF).** Each access point has its own clock, carried in every beacon. A copy that
-  uses the same BSSID cannot follow the real clock: two interleaved timestamp sequences, or a jump backwards, give
-  it away. The beacon cache leaves the timestamp out of its comparison, so this rule reads the 8 bytes of the
-  timestamp on its own, which is cheap.
-- **An evaluation bench.** Labelled captures (normal life, and each attack) to measure missed detections and
-  false alarms whenever a threshold changes.
+- **PMKID and handshake harvesting**: in 0.9.2, in observation mode. It becomes an alert once a week of listening on
+  real networks shows no false positive, and a controlled attack on a test network is seen.
+- **A clone given away by its clock (TSF).** An access point's beacons carry a timestamp that grows steadily; a copy
+  started later, or a replay, breaks that line. Next.
+- **An evaluation bench** with captures of normal days and of attacks, to count false and missed alerts: started in
+  0.9.2 for the PMKID rule (`HandshakeBenchTest`).
 
 ## Later
 - The last tab announced as coming: drone Remote ID (passive). Reports came in 0.8.4, notifications through ntfy in

@@ -415,6 +415,192 @@ class ReportTest(DetectBase):
         self.assertEqual(len(r['trend']), 1)                            # the next-day row is in the future
         self.assertEqual(r['trend'][0]['alerts'], 1)
 
+# -- the 4-way handshake, for the PMKID bench -----------------------------------------
+
+STA = '02:aa:00:00:00:%02x'
+ATTACKER = '9e:13:37:00:00:01'          # a locally administered address, like hcxdumptool's
+
+
+def assoc_req(ap, sta, ch=6):
+    hdr = b'\x00\x00\x00\x00' + mac(ap) + mac(sta) + mac(ap) + b'\x00\x00'
+    return radiotap(2407 + 5 * ch, -48) + hdr + struct.pack('<HH', 0x0411, 10) + ie(0, b'Home')
+
+
+def eapol(ap, sta, msg, ch=6, pmkid=False, pairwise=True):
+    bits = {1: 0x0080, 2: 0x0100, 3: 0x0080 | 0x0100 | 0x0040 | 0x0200 | 0x1000, 4: 0x0100 | 0x0200}[msg]
+    info = bits | 0x0002 | (0x0008 if pairwise else 0)
+    data = (b'\xdd\x14\x00\x0f\xac\x04' + bytes(range(1, 17))) if pmkid else (b'\x30\x14' + b'\x01' * 20 if msg == 2 else b'')
+    key = struct.pack('>BHH', 2, info, 16) + b'\x00' * 8 + b'\x11' * 32 + b'\x00' * 16 + b'\x00' * 8 + b'\x00' * 8
+    key += (b'\x22' * 16 if msg != 1 else b'\x00' * 16) + struct.pack('>H', len(data)) + data
+    body = b'\xaa\xaa\x03\x00\x00\x00\x88\x8e' + struct.pack('>BBH', 2, 3, len(key)) + key
+    if msg in (1, 3):     # access point -> device (from DS)
+        hdr = b'\x88\x02\x00\x00' + mac(sta) + mac(ap) + mac(ap) + b'\x00\x00' + b'\x00\x00'
+    else:                 # device -> access point (to DS)
+        hdr = b'\x88\x01\x00\x00' + mac(ap) + mac(sta) + mac(ap) + b'\x00\x00' + b'\x00\x00'
+    return radiotap(2407 + 5 * ch, -50) + hdr + body
+
+
+class HandshakeBenchTest(DetectBase):
+    """
+    The bench of the PMKID rule. Normal life, including the cases that look like an attack,
+    must give nothing; the attacks must be seen. A false alert is worse than a missed one.
+    """
+
+    def setUp(self):
+        super(HandshakeBenchTest, self).setUp()
+        self.mark(ch=6)
+        self._mode = detect.PMKID_MODE
+
+    def tearDown(self):
+        detect.PMKID_MODE = self._mode
+        super(HandshakeBenchTest, self).tearDown()
+
+    def life(self, cap, end=T0 + 60, start=T0):
+        """The access point beacons every 0.1 s on channel 6: Sentinel stays on that channel."""
+        cap.every(start, end, 0.1, lambda t: beacon(HOME, 'Home', 6))
+
+    def join(self, cap, t, sta, answer=True, complete=True, heard_request=True, pmkid=False):
+        if heard_request:
+            cap.add(t, assoc_req(HOME, sta))
+        cap.add(t + 0.010, eapol(HOME, sta, 1, pmkid=pmkid))
+        if answer:
+            cap.add(t + 0.025, eapol(HOME, sta, 2))
+            if complete:
+                cap.add(t + 0.035, eapol(HOME, sta, 3))
+                cap.add(t + 0.045, eapol(HOME, sta, 4))
+
+    def observed(self, events=None):
+        conn = sqlite3.connect(self.db)
+        conn.row_factory = sqlite3.Row
+        rows = [dict(r) for r in conn.execute("SELECT * FROM events WHERE kind = 'pmkid_attempt'")]
+        conn.close()
+        return rows
+
+    # -- normal life: nothing --
+
+    def test_devices_joining(self):
+        cap = Capture()
+        self.life(cap)
+        for i in range(10):
+            self.join(cap, T0 + 2 + i * 3, STA % i)
+        self.assertEqual(self.observed(self.run_capture(cap)), [])
+
+    def test_power_cut_everything_reconnects_at_once(self):
+        cap = Capture()
+        self.life(cap)
+        for i in range(25):
+            self.join(cap, T0 + 5 + i * 0.6, STA % i)
+        self.assertEqual(self.observed(self.run_capture(cap)), [])
+
+    def test_wrong_password_tried_again_and_again(self):
+        cap = Capture()
+        self.life(cap)
+        for k in range(6):                                       # the device answers, its MIC is wrong
+            self.join(cap, T0 + 2 + k * 8, STA % 1, complete=False)
+            cap.add(T0 + 3 + k * 8, eapol(HOME, STA % 1, 1))      # the access point tries again
+            cap.add(T0 + 3.02 + k * 8, eapol(HOME, STA % 1, 2))
+        self.assertEqual(self.observed(self.run_capture(cap)), [])
+
+    def test_far_device_whose_request_is_not_heard(self):
+        cap = Capture()
+        self.life(cap)
+        for k in range(8):                                       # only the access point is audible
+            self.join(cap, T0 + 2 + k * 5, STA % 2, answer=False, heard_request=False)
+        self.assertEqual(self.observed(self.run_capture(cap)), [])
+
+    def test_radio_left_the_channel_right_after(self):
+        cap = Capture()
+        for k in range(6):                                       # the hopper leaves 0.1 s after message 1
+            t = T0 + 2 + k * 10
+            cap.every(t - 0.5, t + 0.1, 0.1, lambda x: beacon(HOME, 'Home', 6))
+            self.join(cap, t, ATTACKER, answer=False, pmkid=True)
+            cap.every(t + 2.5, t + 3.0, 0.1, lambda x: beacon(OTHER, 'Neighbour', 11))
+        cap.every(T0 + 70, T0 + 90, 0.1, lambda x: beacon(OTHER, 'Neighbour', 11))
+        self.assertEqual(self.observed(self.run_capture(cap)), [])
+
+    def test_group_key_handshake_is_ignored(self):
+        cap = Capture()
+        self.life(cap)
+        for k in range(10):
+            cap.add(T0 + 2 + k * 4, assoc_req(HOME, STA % 3))
+            cap.add(T0 + 2.01 + k * 4, eapol(HOME, STA % 3, 1, pairwise=False))
+        self.assertEqual(self.observed(self.run_capture(cap)), [])
+
+    def test_attack_on_a_neighbour_is_not_ours_to_judge(self):
+        cap = Capture()
+        cap.every(T0, T0 + 60, 0.1, lambda t: beacon(OTHER, 'Neighbour', 6, 'wpa2'))
+        for k in range(6):
+            cap.add(T0 + 2 + k * 5, assoc_req(OTHER, ATTACKER))
+            cap.add(T0 + 2.01 + k * 5, eapol(OTHER, ATTACKER, 1, pmkid=True))
+        self.assertEqual(self.observed(self.run_capture(cap)), [])
+
+    def test_two_abandoned_handshakes_are_not_enough(self):
+        cap = Capture()
+        self.life(cap)
+        for k in range(2):
+            self.join(cap, T0 + 2 + k * 20, ATTACKER, answer=False, pmkid=True)
+        self.assertEqual(self.observed(self.run_capture(cap)), [])
+
+    # -- attacks: seen --
+
+    def test_pmkid_attack_is_observed_not_alerted(self):
+        cap = Capture()
+        self.life(cap)
+        for k in range(4):
+            self.join(cap, T0 + 2 + k * 6, ATTACKER, answer=False, pmkid=True)
+        self.run_capture(cap)
+        rows = self.observed()
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]['source'], 'observe')          # observation mode: no alert
+        self.assertEqual(rows[0]['bssid'], HOME)
+        d = json.loads(rows[0]['details'])
+        self.assertGreaterEqual(d['attempts'], 3)
+        self.assertTrue(d['pmkid'])
+        self.assertNotIn(ATTACKER, json.dumps(rows[0]))         # no device address is kept
+
+    def test_pmkid_attack_alerts_once_turned_on(self):
+        detect.PMKID_MODE = 'alert'
+        cap = Capture()
+        self.life(cap)
+        for k in range(4):
+            self.join(cap, T0 + 2 + k * 6, ATTACKER, answer=False, pmkid=True)
+        events = self.run_capture(cap)
+        alerts = [e for e in events if e['kind'] == 'pmkid_attempt']
+        self.assertEqual([(e['source'], e['severity']) for e in alerts], [('wids', 'high')])
+        self.assertIn('trying to collect the key of your network "Home"', alerts[0]['title'])
+
+    def test_deauth_burst_followed_by_reconnections(self):
+        cap = Capture()
+        self.life(cap)
+        cap.every(T0 + 10, T0 + 11, 0.05, lambda t: deauth(HOME, 'ff:ff:ff:ff:ff:ff'))
+        for i in range(3):
+            self.join(cap, T0 + 13 + i, STA % i)
+        events = self.run_capture(cap)
+        burst = [e for e in events if e['kind'] == 'deauth_flood']
+        self.assertEqual(len(burst), 1)
+        d = json.loads(burst[0]['details'])
+        self.assertEqual(d['reconnections_after'], 3)
+        self.assertIn('handshake', d['note'])
+
+    def test_joins_before_the_burst_are_not_reconnections(self):
+        cap = Capture()
+        self.life(cap)
+        for i in range(4):                                       # normal joins well before
+            self.join(cap, T0 + 2 + i, STA % i)
+        cap.every(T0 + 30, T0 + 31, 0.05, lambda t: deauth(HOME, 'ff:ff:ff:ff:ff:ff'))
+        cap.every(T0 + 60, T0 + 80, 0.1, lambda t: beacon(HOME, 'Home', 6))
+        events = self.run_capture(cap)
+        d = json.loads([e for e in events if e['kind'] == 'deauth_flood'][0]['details'])
+        self.assertNotIn('reconnections_after', d)
+
+    def test_deauth_burst_without_reconnections_is_unchanged(self):
+        cap = Capture()
+        self.life(cap)
+        cap.every(T0 + 10, T0 + 11, 0.05, lambda t: deauth(HOME, 'ff:ff:ff:ff:ff:ff'))
+        events = self.run_capture(cap)
+        d = json.loads([e for e in events if e['kind'] == 'deauth_flood'][0]['details'])
+        self.assertNotIn('reconnections_after', d)
+
 class SummaryTest(DetectBase):
     """Roadmap: the small file a dashboard reads every minute."""
 
