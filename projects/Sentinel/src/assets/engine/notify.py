@@ -135,8 +135,9 @@ def _https_in_python():
         return False
 
 
-def send(cfg, title, message, priority=3, tags='', timeout=TIMEOUT):
+def send(cfg, title, message, priority=3, tags='', timeout=None):
     """Post one message. Returns None when it worked, or a short error. Never raises."""
+    timeout = timeout or TIMEOUT
     url = '%s/%s' % (cfg['server'].rstrip('/'), cfg['topic'])
     headers = {'Title': clean(title, 120).encode('ascii', 'replace').decode('ascii'),
                'Priority': str(priority), 'Content-Type': 'text/plain; charset=utf-8'}
@@ -204,12 +205,15 @@ class Notifier(object):
         self._sent = []              # times of the messages sent in the last hour
         self.held = 0                # alerts held back by the hourly limit, told in one message
         self.last_error = None
+        self._last_pass_timeout = None   # set by stop(): the last pass must be quick
 
     def start(self):
         self._thread = threading.Thread(target=self._run, name='sentinel-notify', daemon=True)
         self._thread.start()
 
     def stop(self, timeout=5):
+        """Ask for one last pass (it sends what is queued), wait at most `timeout` seconds."""
+        self._last_pass_timeout = max(1, int(timeout))
         self._halt.set()
         if self._thread:
             self._thread.join(timeout)
@@ -264,7 +268,7 @@ class Notifier(object):
             pending, self._status = self._status, []
         if cfg['status_messages']:
             for i, text in enumerate(pending):
-                err = send(cfg, 'Sentinel', text, priority=3, tags='satellite')
+                err = send(cfg, 'Sentinel', text, priority=3, tags='satellite', timeout=self._last_pass_timeout)
                 if err:
                     with self._lock:
                         self._status = pending[i:] + self._status

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.1
+- **Notifications tested end to end on a real Mark VII** (firmware 2.1.3): the test button and the engine's own
+  messages reached the ntfy app on a phone, over HTTPS to ntfy.sh, with the Pineapple in client mode on `wlan2`.
+  Sentinel kept listening on both radios the whole time.
+- When listening stops, the "Sentinel stopped listening" message now goes out first, with at most 3 seconds to send
+  it, before the slower steps (saving the last data, the dashboard summary). The module stops the engine for good
+  after 5 seconds, so a slow server or a busy Pineapple could otherwise cut that message.
+
 ## 0.9.0
 - **The Notifications tab: alerts on your phone through ntfy** (ntfy.sh or your own server).
   - Choose the server, a topic (a **Random** button makes one that is hard to guess), an optional access token, the

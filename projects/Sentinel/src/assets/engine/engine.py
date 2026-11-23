@@ -56,7 +56,7 @@ RADIO_RETRY = 30.0           # seconds between two attempts to reopen a lost rad
 FRAME_BUDGET_SOFT = 800
 FRAME_BUDGET_HARD = 2000
 DAILY_INTERVAL = 3600.0       # seconds between two updates of today's report row (report.py)
-TIMEOUT_NOTIFY_STOP = 15      # seconds to send the last messages when listening stops
+TIMEOUT_NOTIFY_STOP = 3       # seconds to send the last message when listening stops (the module waits 5 s)
 SUMMARY_INTERVAL = 60.0      # seconds between two dashboard summaries (summary.py)
 NICENESS = 10                # live capture runs below the web interface
 BAD_CHANNEL_RETRY = 300.0    # seconds before skipped channels are tried again
@@ -548,16 +548,18 @@ class Engine(object):
                     if self.db_errors <= 3:
                         print('database error: %s' % e, file=sys.stderr)
         finally:
+            # First the last message: the module kills the engine 5 s after asking it to stop,
+            # and the steps below (flush, status, summary) can take seconds on the Mark VII.
+            if self.notifier:
+                self.notifier.status('Sentinel stopped listening.')
+                self.notifier.stop(timeout=TIMEOUT_NOTIFY_STOP)
+                self.notifier = None
             for r in self.radios:
                 r.close()
             self.flush_window()
             self.running = False
             self.write_status()
             self.write_summary()  # says the engine stopped
-            if self.notifier:
-                self.notifier.status('Sentinel stopped listening.')
-                self.notifier.stop(timeout=TIMEOUT_NOTIFY_STOP)
-                self.notifier = None
 
     # -- offline replay ---------------------------------------------------
 
