@@ -110,7 +110,9 @@ export class SentinelComponent implements OnInit, AfterViewInit, OnDestroy {
         el.style.setProperty('--sn-card', cardBg);
         el.style.setProperty('--sn-text', card.color);
         el.style.setProperty('--sn-primary', primary.backgroundColor);
-        el.style.setProperty('--sn-on-primary', primary.color);
+        // Text on a coloured button: black or white, whichever reads on that colour. Some
+        // Pineapple themes (dark mode) give a button text the same colour as its background.
+        el.style.setProperty('--sn-on-primary', luminance(primary.backgroundColor) > 0.45 ? '#111111' : '#ffffff');
     }
 
     toggleEngine(): void {

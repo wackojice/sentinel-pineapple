@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.3
+- **Readable buttons in the Pineapple's dark mode.** With the dark theme, "Start monitoring" and "Stop monitoring" could
+  have their text in the same colour as the button. Coloured buttons now pick black or white text from the colour of
+  the button itself, whatever the theme, and "Stop monitoring" is an outlined button in the page's text colour.
+
 ## 0.9.2
 - **Attempts to collect the key of your network (PMKID), in observation mode.** A device asks to join one of your
   access points, gets the first message of the handshake (which carries the PMKID), never answers, and tries again:

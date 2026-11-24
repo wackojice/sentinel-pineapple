@@ -118,3 +118,9 @@ mat-card.card {
         transition: none !important;
     }
 }
+
+/* Coloured buttons keep a readable text whatever the Pineapple theme (see readHostTheme) */
+.mat-flat-button.mat-primary:not([disabled]) {
+    background-color: var(--sn-primary);
+    color: var(--sn-on-primary);
+}

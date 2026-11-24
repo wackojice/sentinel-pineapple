@@ -27,7 +27,8 @@
                 </div>
             </div>
 
-            <button mat-flat-button [color]="status?.running ? undefined : 'primary'"
+            <button mat-flat-button class="engine-button" [class.is-running]="status?.running"
+                    [color]="status?.running ? undefined : 'primary'"
                     [disabled]="busy || !canStart" (click)="toggleEngine()">
                 <mat-icon>{{ status?.running ? 'stop' : 'play_arrow' }}</mat-icon>
                 {{ status?.running ? 'Stop monitoring' : 'Start monitoring' }}
