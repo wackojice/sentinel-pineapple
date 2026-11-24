@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.4
+- **Dark mode, for real this time.** The Pineapple's dark theme uses a primary colour almost the same as its cards,
+  so outlined buttons ("Create wlan3mon"), switches and checkboxes in that colour vanished. Sentinel now measures
+  the contrast between the theme's primary colour and the cards; when it is too low (or the colour is transparent),
+  it uses the text colour instead, for buttons, switches and checkboxes.
+- Fixed in 0.9.3's change: the hidden button Sentinel uses to read the theme's colour was itself restyled, so it read
+  back a transparent colour. It is now left alone.
+
 ## 0.9.3
 - **Readable buttons in the Pineapple's dark mode.** With the dark theme, "Start monitoring" and "Stop monitoring" could
   have their text in the same colour as the button. Coloured buttons now pick black or white text from the colour of
