@@ -121,6 +121,8 @@ when a radio stops working or listening stops.
 The Pineapple needs a way to reach the ntfy server: connect it to your Wi-Fi with client mode on **wlan2**, not with
 the MK7AC (Sentinel needs it for 5 GHz). Your own ntfy server on the local network works too, without Internet.
 Messages hold your network names and access point addresses, so they leave the house unless the server is yours.
+In the ntfy app, turn on **Instant delivery** for the topic and let ntfy ignore battery optimisation, or alerts can
+arrive late or not at all.
 
 ## Good to know
 

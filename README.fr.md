@@ -95,7 +95,8 @@ test**. Il peut aussi te prévenir quand une radio arrête de fonctionner ou que
 Le Pineapple doit pouvoir joindre le serveur ntfy : connecte-le à ton Wi-Fi en mode client sur **wlan2**, pas avec le
 MK7AC (Sentinel en a besoin pour le 5 GHz). Ton propre serveur ntfy sur le réseau local fonctionne aussi, sans Internet.
 Les messages contiennent les noms de tes réseaux et les adresses de tes bornes : ils sortent de la maison, sauf si le
-serveur est à toi.
+serveur est à toi. Dans l'application ntfy, active **Instant delivery** pour le sujet et laisse ntfy ignorer
+l'optimisation de batterie, sinon les alertes peuvent arriver en retard ou pas du tout.
 
 ## Bon à savoir
 

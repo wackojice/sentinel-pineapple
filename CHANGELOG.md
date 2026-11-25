@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.6
+- **Notifications: a tip for the phone.** With ntfy's "Instant delivery" off, Android can deliver alerts late or not at
+  all, even though Sentinel sent them (seen on a real phone: the messages were on ntfy.sh, not on the phone). The
+  Notifications tab and the README now say to turn it on and to let ntfy ignore battery optimisation.
+
 ## 0.9.5
 - **No more empty tab.** The "Drones" tab, announced as coming, is gone from the interface until it does something.
   It stays on the roadmap. Every tab left works.
