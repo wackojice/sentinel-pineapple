@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.5
+- **No more empty tab.** The "Drones" tab, announced as coming, is gone from the interface until it does something.
+  It stays on the roadmap. Every tab left works.
+
 ## 0.9.4
 - **Dark mode, for real this time.** The Pineapple's dark theme uses a primary colour almost the same as its cards,
   so outlined buttons ("Create wlan3mon"), switches and checkboxes in that colour vanished. Sentinel now measures

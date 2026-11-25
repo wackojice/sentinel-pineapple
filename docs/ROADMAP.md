@@ -33,8 +33,9 @@ project has no licence.
   0.9.2 for the PMKID rule (`HandshakeBenchTest`).
 
 ## Later
-- The last tab announced as coming: drone Remote ID (passive). Reports came in 0.8.4, notifications through ntfy in
-  0.9.0; other services (Discord, Telegram, a generic webhook) only if people ask.
+- A Drones tab: drones that broadcast their Remote ID over Wi-Fi (passive), with their ID, position and altitude.
+  Not in the interface until it works. Other notification services (Discord, Telegram, a generic webhook) only if
+  people ask.
 - Channel width from the HT/VHT/HE elements, and occupancy from the BSS Load element.
 - A "Tetra edition" for the 6th-generation Pineapple (NANO/TETRA), if Python 3 is available there. The capture
   engine is reused, and only the interface is rewritten for that module system.
